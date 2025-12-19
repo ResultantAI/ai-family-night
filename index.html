@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Family Night | Turn Screen Time Into Together Time</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #3b82f6;
+            --accent: #f59e0b;
+            --accent-light: #fbbf24;
+            --bg: #fffbf5;
+            --bg-warm: #fef7ed;
+            --bg-card: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --success: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1rem 2rem;
+            background: rgba(255, 251, 245, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.4rem;
+            color: var(--text);
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .nav-cta {
+            padding: 0.6rem 1.25rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-cta:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 6rem 2rem 4rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero-content {
+            flex: 1;
+            max-width: 600px;
+        }
+
+        .hero-visual {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @media (max-width: 900px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+                padding-top: 5rem;
+            }
+            .hero-visual {
+                margin-top: 2rem;
+            }
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            background: var(--bg-warm);
+            border: 1px solid var(--accent);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            line-height: 1.15;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+        }
+
+        h1 .highlight {
+            color: var(--primary);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 500px;
+        }
+
+        @media (max-width: 900px) {
+            .subtitle {
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+
+        .hero-cta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        @media (max-width: 900px) {
+            .hero-cta {
+                align-items: center;
+            }
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2);
+        }
+
+        .hero-note {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Hero Visual - Comic Book Style */
+        .comic-preview {
+            width: 350px;
+            height: 400px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 
+                0 4px 6px rgba(0,0,0,0.05),
+                0 20px 40px rgba(0,0,0,0.1),
+                8px 8px 0 var(--accent);
+            padding: 1rem;
+            transform: rotate(3deg);
+            position: relative;
+        }
+
+        .comic-preview::before {
+            content: '📖 Roblox Mirror';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: var(--accent);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .comic-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 0.5rem;
+            height: 100%;
+        }
+
+        .comic-panel {
+            background: var(--bg-warm);
+            border: 2px solid var(--text);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            position: relative;
+        }
+
+        .comic-panel::after {
+            content: attr(data-caption);
+            position: absolute;
+            bottom: 4px;
+            left: 4px;
+            right: 4px;
+            background: white;
+            border: 1px solid var(--text);
+            padding: 2px 4px;
+            font-size: 0.6rem;
+            text-align: center;
+        }
+
+        @media (max-width: 900px) {
+            .comic-preview {
+                width: 280px;
+                height: 320px;
+                transform: rotate(0deg);
+            }
+        }
+
+        /* Story Section */
+        .story-section {
+            padding: 5rem 2rem;
+            background: white;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .story-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .story-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        .story-container h2 {
+            font-family: 'DM Serif Display', serif;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .story-text {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .story-text p {
+            margin-bottom: 1.25rem;
+        }
+
+        .story-text strong {
+            color: var(--text);
+        }
+
+        .story-quote {
+            border-left: 4px solid var(--accent);
+            padding-left: 1.5rem;
+            margin: 2rem 0;
+            font-style: italic;
+            font-size: 1.2rem;
+            color: var(--text);
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 5rem 2rem;
+            background: var(--bg);
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 3rem;
+        }
+
+        .section-header h2 {
+            font-family: 'DM Serif Display', serif;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .step-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .step-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .step-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .step-time {
+            display: inline-block;
+            margin-top: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-warm);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Example Challenges */
+        .challenges-section {
+            padding: 5rem 2rem;
+            background: white;
+            border-top: 1px solid var(--border);
+        }
+
+        .challenges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .challenge-card {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .challenge-card:hover {
+            border-color: var(--primary);
+        }
+
+        .challenge-card.featured {
+            background: linear-gradient(135deg, #dbeafe 0%, #ede9fe 100%);
+            border-color: var(--primary);
+            position: relative;
+        }
+
+        .challenge-card.featured::before {
+            content: '⭐ Signature Challenge';
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .challenge-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .challenge-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .challenge-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .challenge-output {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.8rem;
+            color: var(--success);
+            font-weight: 500;
+        }
+
+        /* Benefits */
+        .benefits-section {
+            padding: 5rem 2rem;
+            background: var(--bg);
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .benefit-item {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .benefit-icon {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+        }
+
+        .benefit-content h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .benefit-content p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 5rem 2rem;
+            background: var(--text);
+            color: white;
+        }
+
+        .cta-container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .cta-container h2 {
+            font-family: 'DM Serif Display', serif;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            margin-bottom: 1rem;
+        }
+
+        .cta-container p {
+            color: #94a3b8;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .signup-form {
+            display: flex;
+            gap: 0.75rem;
+            max-width: 450px;
+            margin: 0 auto 1.5rem;
+        }
+
+        @media (max-width: 500px) {
+            .signup-form {
+                flex-direction: column;
+            }
+        }
+
+        .signup-form input {
+            flex: 1;
+            padding: 1rem 1.25rem;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            background: #1e293b;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .signup-form input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .signup-form input::placeholder {
+            color: #64748b;
+        }
+
+        .signup-form button {
+            padding: 1rem 1.5rem;
+            background: var(--accent);
+            color: var(--text);
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .signup-form button:hover {
+            background: var(--accent-light);
+            transform: translateY(-2px);
+        }
+
+        .cta-note {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .cta-note a {
+            color: #94a3b8;
+        }
+
+        .social-proof {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #334155;
+        }
+
+        .avatars {
+            display: flex;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--text);
+            margin-left: -10px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .avatar:first-child {
+            margin-left: 0;
+        }
+
+        .social-proof-text {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        .social-proof-text strong {
+            color: white;
+        }
+
+        /* FAQ */
+        .faq-section {
+            padding: 5rem 2rem;
+            background: white;
+        }
+
+        .faq-grid {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .faq-answer {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 2rem;
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .footer-logo {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        .footer-copy {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Success Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 2rem;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .modal-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal h3 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .modal p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .modal button {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(3deg); }
+            50% { transform: translateY(-10px) rotate(3deg); }
+        }
+
+        .comic-preview {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @media (max-width: 900px) {
+            .comic-preview {
+                animation: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">AI Family <span>Night</span></div>
+        <button class="nav-cta" onclick="scrollToSignup()">Join Free</button>
+    </nav>
+
+    <main>
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-content">
+                <div class="badge">🎯 15 minutes/week</div>
+                <h1>Stop Worrying About AI.<br><span class="highlight">Start Doing It Together.</span></h1>
+                <p class="subtitle">A weekly challenge that turns "screen time" into quality time. You and your kid create something fun with AI. No tech skills required.</p>
+                <div class="hero-cta">
+                    <button class="btn-primary" onclick="scrollToSignup()">
+                        Get Your First Challenge Free →
+                    </button>
+                    <p class="hero-note">Join 500+ families. Challenges sent every Thursday.</p>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="comic-preview">
+                    <div class="comic-grid">
+                        <div class="comic-panel" data-caption="Alex discovers a glitch...">🎮</div>
+                        <div class="comic-panel" data-caption="&quot;Wait, is that ME?&quot;">😱</div>
+                        <div class="comic-panel" data-caption="The Robux come alive!">💰</div>
+                        <div class="comic-panel" data-caption="&quot;Worth it.&quot;">😎</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Story Section -->
+        <section class="story-section">
+            <div class="story-container">
+                <div class="story-label">Why I Built This</div>
+                <h2>I Was Losing My Kids to a World I Didn't Understand</h2>
+                <div class="story-text">
+                    <p>A couple years ago, I went through a rough patch and felt disconnected from my kids. They were growing up in a world of Roblox and AI that I didn't understand—and honestly, I didn't know how to reach them anymore.</p>
+                    
+                    <p>Last summer, on a trip together, I tried something different. I used ChatGPT to create an AI-generated comic book with them—a silly parody of Black Mirror, but starring them in Roblox scenarios. We called it <strong>"Roblox Mirror."</strong></p>
+                    
+                    <p>They loved it. We spent hours laughing, riffing on ideas, making it weirder and funnier. It was the most connected I'd felt with them in years.</p>
+                    
+                    <div class="story-quote">
+                        "The thing I was anxious about—AI—was actually the bridge back to my kids."
+                    </div>
+                    
+                    <p>I built AI Family Night so other parents could have that same experience. Fifteen minutes a week. One challenge. Something you create together.</p>
+                    
+                    <p><strong>Because the point isn't to teach your kids about AI. It's to stop feeling like a stranger in their world.</strong></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section class="how-it-works">
+            <div class="section-header">
+                <h2>How It Works</h2>
+                <p>Simple enough that you'll actually do it. Fun enough that your kids will want to.</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Get the Challenge</h3>
+                    <p>Every Thursday at 5pm, you get an email with one creative AI challenge designed for you and your kid.</p>
+                    <span class="step-time">📧 Arrives Thursday</span>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Do It Together</h3>
+                    <p>Follow the simple prompts. No tech skills needed—we give you exactly what to type. Just bring the laughs.</p>
+                    <span class="step-time">⏱️ 15 minutes</span>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Keep or Share</h3>
+                    <p>Every challenge produces something—a comic, a story, a game. Keep it as a memory or share it with the community.</p>
+                    <span class="step-time">📸 Shareable output</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Example Challenges -->
+        <section class="challenges-section">
+            <div class="section-header">
+                <h2>Example Challenges</h2>
+                <p>Each week brings something new. Here's a taste of what you'll create.</p>
+            </div>
+            <div class="challenges-grid">
+                <div class="challenge-card featured">
+                    <div class="challenge-icon">📖</div>
+                    <h3>Roblox Mirror</h3>
+                    <p>Create a silly "Black Mirror for kids" comic starring your child in a weird Roblox scenario.</p>
+                    <span class="challenge-output">✓ 4-panel comic book</span>
+                </div>
+                <div class="challenge-card">
+                    <div class="challenge-icon">🏰</div>
+                    <h3>Dream Treehouse</h3>
+                    <p>Design your ultimate treehouse together, then bring it to life with AI images.</p>
+                    <span class="challenge-output">✓ AI-generated artwork</span>
+                </div>
+                <div class="challenge-card">
+                    <div class="challenge-icon">🎵</div>
+                    <h3>Family Theme Song</h3>
+                    <p>Write a ridiculous theme song about your family. Bonus: hear AI sing it.</p>
+                    <span class="challenge-output">✓ Original song lyrics</span>
+                </div>
+                <div class="challenge-card">
+                    <div class="challenge-icon">🦸</div>
+                    <h3>Superhero Origin Story</h3>
+                    <p>Turn your kid into a superhero with powers based on their real personality.</p>
+                    <span class="challenge-output">✓ Illustrated story</span>
+                </div>
+                <div class="challenge-card">
+                    <div class="challenge-icon">🔮</div>
+                    <h3>Future Headlines</h3>
+                    <p>Create a "newspaper from the future" predicting funny things about your family.</p>
+                    <span class="challenge-output">✓ Fake newspaper page</span>
+                </div>
+                <div class="challenge-card">
+                    <div class="challenge-icon">🎮</div>
+                    <h3>Video Game Pitch</h3>
+                    <p>Design a video game together—characters, levels, and power-ups.</p>
+                    <span class="challenge-output">✓ Game design doc</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Benefits -->
+        <section class="benefits-section">
+            <div class="section-header">
+                <h2>Why Parents Love This</h2>
+            </div>
+            <div class="benefits-grid">
+                <div class="benefit-item">
+                    <div class="benefit-icon">🎯</div>
+                    <div class="benefit-content">
+                        <h3>Actually Doable</h3>
+                        <p>15 minutes, once a week. Not another thing to feel guilty about skipping.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">🌉</div>
+                    <div class="benefit-content">
+                        <h3>Bridge the Gap</h3>
+                        <p>Enter their world—Roblox, Minecraft, whatever they're into—on their terms.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">🧠</div>
+                    <div class="benefit-content">
+                        <h3>Learn Together</h3>
+                        <p>You don't need to be an expert. You'll figure out AI alongside your kid.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">📸</div>
+                    <div class="benefit-content">
+                        <h3>Create Memories</h3>
+                        <p>Every session produces something you'll want to keep—comics, stories, art.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">💪</div>
+                    <div class="benefit-content">
+                        <h3>Future-Ready Skills</h3>
+                        <p>Prompting, iterating, creative thinking—skills they'll use forever.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">🔒</div>
+                    <div class="benefit-content">
+                        <h3>Safe & Supervised</h3>
+                        <p>You're right there with them. No unsupervised AI interactions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta-section" id="signup">
+            <div class="cta-container">
+                <h2>Get Your First Challenge Free</h2>
+                <p>Join families who've stopped worrying about AI and started having fun with it.</p>
+                <form class="signup-form" onsubmit="handleSignup(event)">
+                    <input type="email" id="emailInput" placeholder="Enter your email" required>
+                    <button type="submit">Join Free</button>
+                </form>
+                <p class="cta-note">Free forever for the first 3 challenges. No credit card required. <a href="#">Privacy Policy</a></p>
+                <div class="social-proof">
+                    <div class="avatars">
+                        <div class="avatar">👨</div>
+                        <div class="avatar">👩</div>
+                        <div class="avatar">👨</div>
+                        <div class="avatar">👩</div>
+                        <div class="avatar">+</div>
+                    </div>
+                    <span class="social-proof-text"><strong id="signupCount">527</strong> parents already joined</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section class="faq-section">
+            <div class="section-header">
+                <h2>Questions?</h2>
+            </div>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <div class="faq-question">What ages is this for?</div>
+                    <div class="faq-answer">AI Family Night works best for kids ages 7-12. Younger kids can participate with more parent help; older kids might want more independence but often still enjoy the creative challenges.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Do I need to know anything about AI?</div>
+                    <div class="faq-answer">Nope! Every challenge includes exact prompts to copy-paste. If you can type, you can do this. Many parents tell us they learned alongside their kids—and that's kind of the point.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">What tools do I need?</div>
+                    <div class="faq-answer">Just free AI tools like ChatGPT (free version works fine) or Claude. For image challenges, we recommend free tools like Bing Image Creator. We always suggest free options first.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Is this safe for kids?</div>
+                    <div class="faq-answer">Yes—because you're doing it together. The challenges are designed for supervised co-creation. You're right there with your kid, which is the safest way for them to learn about AI.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">What if my kid isn't into Roblox?</div>
+                    <div class="faq-answer">The challenges are customizable! We use Roblox as an example because it's popular, but every challenge works with whatever your kid is into—Minecraft, sports, animals, you name it.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">How is this different from coding camps or AI courses?</div>
+                    <div class="faq-answer">Those are great, but they're a bigger commitment and often separate you from the learning. AI Family Night is about connection first, learning second. You do it together, and it only takes 15 minutes.</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-logo">AI Family Night</div>
+        <div class="footer-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Contact</a>
+        </div>
+        <p class="footer-copy">© 2024 AI Family Night. Made with ❤️ for families figuring out AI together.</p>
+    </footer>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal">
+            <div class="modal-icon">🎉</div>
+            <h3>You're In!</h3>
+            <p>Check your inbox—your first AI Family Night challenge is on its way. Get ready to create something awesome with your kids.</p>
+            <button onclick="closeModal()">Got It</button>
+        </div>
+    </div>
+
+    <script>
+        function scrollToSignup() {
+            document.getElementById('signup').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            const email = document.getElementById('emailInput').value;
+            
+            // In production, this would submit to ConvertKit/etc
+            console.log('Signup:', email);
+            
+            // Update count
+            const countEl = document.getElementById('signupCount');
+            countEl.textContent = parseInt(countEl.textContent) + 1;
+            
+            // Show modal
+            document.getElementById('successModal').classList.add('show');
+            
+            // Clear input
+            document.getElementById('emailInput').value = '';
+        }
+
+        function closeModal() {
+            document.getElementById('successModal').classList.remove('show');
+        }
+
+        // Randomize initial count slightly
+        document.getElementById('signupCount').textContent = 500 + Math.floor(Math.random() * 75);
+    </script>
+</body>
+</html>
