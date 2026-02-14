@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Family Night | Interactive Family Games</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Interactive family games and activities - no external tools needed!">
+    <meta name="theme-color" content="#ff6b9d">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&family=Permanent+Marker&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #ff6b9d;
+            --primary-dark: #e85888;
+            --secondary: #ffd93d;
+            --accent: #6bcf7f;
+            --purple: #a78bfa;
+            --blue: #60a5fa;
+            --red: #ef4444;
+
+            --bg: #fff5f8;
+            --bg-card: #ffffff;
+            --text: #2d1b3d;
+            --text-secondary: #6b5472;
+            --text-muted: #9d8ba5;
+
+            --radius-sm: 12px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+
+            --shadow: 0 4px 20px rgba(255, 107, 157, 0.15);
+            --shadow-lg: 0 8px 40px rgba(255, 107, 157, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-btn {
+            padding: 0.6rem 1.25rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            border-radius: var(--radius-sm);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-btn:hover {
+            background: white;
+            color: var(--primary);
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            min-height: calc(100vh - 100px);
+            padding: 2rem 0;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dashboard */
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: white;
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .welcome-banner h1 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .seasonal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .game-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            text-align: center;
+        }
+
+        .game-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .game-card.seasonal {
+            background: linear-gradient(135deg, #ffe5f1, #ffeef6);
+            border-color: var(--primary);
+        }
+
+        .game-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .game-card h3 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.4rem;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .game-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .game-meta {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Fredoka', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Game Screens Common Styles */
+        .game-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .game-header .game-icon {
+            font-size: 4rem;
+        }
+
+        .game-header h2 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin: 1rem 0 0.5rem;
+        }
+
+        .game-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #f0e7f4;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Comic Creator Specific */
+        .comic-panel {
+            background: #fef7ed;
+            border: 3px solid var(--text);
+            border-radius: var(--radius-sm);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .comic-panel h4 {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .comic-preview {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            background: white;
+            padding: 1rem;
+            border: 2px solid var(--text);
+            border-radius: var(--radius-sm);
+            margin-top: 2rem;
+        }
+
+        .preview-panel {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #fef7ed 0%, #fff9f0 100%);
+            border: 2px solid var(--text);
+            border-radius: 4px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .preview-emoji {
+            font-size: 3rem;
+            text-align: center;
+        }
+
+        .preview-text {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 0.8rem;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        /* Clue Cards */
+        .clue-card {
+            background: linear-gradient(135deg, #ffe5f1 0%, #ffeef6 100%);
+            border: 2px solid var(--primary);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .clue-card::before {
+            content: '💖';
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            font-size: 1.5rem;
+            background: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 50%;
+        }
+
+        .clue-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            font-weight: 700;
+            margin-right: 0.75rem;
+        }
+
+        .clue-text {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.1rem;
+            color: var(--text);
+            font-style: italic;
+        }
+
+        /* Trivia Game */
+        .question-card {
+            background: var(--bg-card);
+            border: 3px solid var(--primary);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-text {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+        }
+
+        .answer-options {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .answer-btn {
+            padding: 1rem 1.5rem;
+            background: var(--bg);
+            border: 2px solid #f0e7f4;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .answer-btn:hover {
+            border-color: var(--primary);
+            background: #ffe5f1;
+        }
+
+        .answer-btn.correct {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .answer-btn.incorrect {
+            background: var(--red);
+            color: white;
+            border-color: var(--red);
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .score-display h3 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Print Styles */
+        @media print {
+            header, .action-buttons, .back-btn {
+                display: none !important;
+            }
+
+            .game-container {
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+
+            .clue-card, .comic-preview {
+                page-break-inside: avoid;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 1.5rem;
+            }
+
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .comic-preview {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="logo">
+                <span>🏡</span>
+                <span>AI Family Night</span>
+            </div>
+            <a href="#" class="back-btn" id="headerBackBtn" style="display: none;" onclick="showDashboard(); return false;">
+                ← Games
+            </a>
+        </div>
+    </header>
+
+    <!-- Dashboard -->
+    <div class="screen active" id="dashboard">
+        <div class="container">
+            <div class="welcome-banner">
+                <h1>❤️ Valentine's Weekend Special!</h1>
+                <p>Play interactive family games - no external tools needed!</p>
+                <span class="seasonal-badge">
+                    💝 5 Special Games for This Weekend
+                </span>
+            </div>
+
+            <h2 style="font-family: 'Fredoka', sans-serif; margin-bottom: 1.5rem; text-align: center;">Choose Your Game</h2>
+
+            <div class="games-grid">
+                <div class="game-card seasonal" onclick="showGame('comicCreator')">
+                    <div class="game-icon">💕</div>
+                    <h3>Love Story Comic</h3>
+                    <p>Create a 4-panel comic about your family's love</p>
+                    <div class="game-meta">
+                        <span>⏱️ 15 min</span>
+                        <span>✨ Interactive</span>
+                    </div>
+                </div>
+
+                <div class="game-card seasonal" onclick="showGame('heartHunt')">
+                    <div class="game-icon">💖</div>
+                    <h3>Heart Hunt</h3>
+                    <p>Generate rhyming clues for a scavenger hunt</p>
+                    <div class="game-meta">
+                        <span>⏱️ 20 min</span>
+                        <span>🎯 Printable</span>
+                    </div>
+                </div>
+
+                <div class="game-card seasonal" onclick="showGame('presidentialTrivia')">
+                    <div class="game-icon">🎩</div>
+                    <h3>Presidential Trivia</h3>
+                    <p>Test your knowledge with 10 fun questions</p>
+                    <div class="game-meta">
+                        <span>⏱️ 10 min</span>
+                        <span>🏆 Scoring</span>
+                    </div>
+                </div>
+
+                <div class="game-card seasonal" onclick="showGame('loveSong')">
+                    <div class="game-icon">🎵</div>
+                    <h3>Family Love Song</h3>
+                    <p>Generate silly lyrics about your family</p>
+                    <div class="game-meta">
+                        <span>⏱️ 15 min</span>
+                        <span>🎤 Rhymes Included</span>
+                    </div>
+                </div>
+
+                <div class="game-card seasonal" onclick="showGame('timeMachine')">
+                    <div class="game-icon">⏰</div>
+                    <h3>Time Machine Story</h3>
+                    <p>Bring a president to 2026 - what would shock them?</p>
+                    <div class="game-meta">
+                        <span>⏱️ 20 min</span>
+                        <span>📖 Story Builder</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comic Creator Game -->
+    <div class="screen" id="comicCreator">
+        <div class="container">
+            <div class="game-container">
+                <div class="game-header">
+                    <div class="game-icon">💕</div>
+                    <h2>Family Love Story Comic</h2>
+                    <p>Create a 4-panel comic showing how your family shows love</p>
+                </div>
+
+                <div class="comic-panel">
+                    <h4>Panel 1: The Setup</h4>
+                    <div class="form-group">
+                        <label>Choose emoji character</label>
+                        <select id="panel1Emoji">
+                            <option value="👨">Dad</option>
+                            <option value="👩">Mom</option>
+                            <option value="👧">Daughter</option>
+                            <option value="👦">Son</option>
+                            <option value="👵">Grandma</option>
+                            <option value="👴">Grandpa</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>What are they doing?</label>
+                        <input type="text" id="panel1Text" placeholder="Making breakfast for everyone">
+                    </div>
+                </div>
+
+                <div class="comic-panel">
+                    <h4>Panel 2: The Love Moment</h4>
+                    <div class="form-group">
+                        <label>Choose emoji character</label>
+                        <select id="panel2Emoji">
+                            <option value="👨">Dad</option>
+                            <option value="👩">Mom</option>
+                            <option value="👧">Daughter</option>
+                            <option value="👦">Son</option>
+                            <option value="❤️">Heart</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>What happens?</label>
+                        <input type="text" id="panel2Text" placeholder="Everyone helps set the table">
+                    </div>
+                </div>
+
+                <div class="comic-panel">
+                    <h4>Panel 3: The Reaction</h4>
+                    <div class="form-group">
+                        <label>Choose emoji character</label>
+                        <select id="panel3Emoji">
+                            <option value="😊">Happy Family</option>
+                            <option value="🥰">Love Eyes</option>
+                            <option value="😄">Big Smile</option>
+                            <option value="🤗">Hug</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>What do they say/feel?</label>
+                        <input type="text" id="panel3Text" placeholder="'This is the best breakfast ever!'">
+                    </div>
+                </div>
+
+                <div class="comic-panel">
+                    <h4>Panel 4: The Ending</h4>
+                    <div class="form-group">
+                        <label>Choose emoji character</label>
+                        <select id="panel4Emoji">
+                            <option value="👨‍👩‍👧‍👦">Whole Family</option>
+                            <option value="💕">Hearts</option>
+                            <option value="🏡">House</option>
+                            <option value="✨">Sparkles</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>How does it end?</label>
+                        <input type="text" id="panel4Text" placeholder="'That's how we show love every day'">
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="generateComic()">
+                        ✨ Generate Comic
+                    </button>
+                </div>
+
+                <div id="comicOutput" style="display: none;">
+                    <h3 style="font-family: 'Fredoka', sans-serif; text-align: center; margin: 2rem 0 1rem;">Your Comic:</h3>
+                    <div class="comic-preview" id="comicPreview"></div>
+                    <div class="action-buttons">
+                        <button class="btn btn-success" onclick="window.print()">
+                            🖨️ Print Comic
+                        </button>
+                        <button class="btn btn-secondary" onclick="showDashboard()">
+                            ← Back to Games
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Heart Hunt Game -->
+    <div class="screen" id="heartHunt">
+        <div class="container">
+            <div class="game-container">
+                <div class="game-header">
+                    <div class="game-icon">💖</div>
+                    <h2>Valentine Heart Hunt</h2>
+                    <p>Generate rhyming clues for a scavenger hunt around your home</p>
+                </div>
+
+                <div class="form-group">
+                    <label>How many clues do you want? (3-7)</label>
+                    <select id="numClues">
+                        <option value="3">3 clues (Quick hunt)</option>
+                        <option value="5" selected>5 clues (Medium hunt)</option>
+                        <option value="7">7 clues (Epic hunt)</option>
+                    </select>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="generateClues()">
+                        💖 Generate Clues
+                    </button>
+                </div>
+
+                <div id="cluesOutput" style="display: none;">
+                    <h3 style="font-family: 'Fredoka', sans-serif; text-align: center; margin: 2rem 0 1rem;">Your Clue Cards:</h3>
+                    <div id="cluesList"></div>
+                    <div style="background: #ffe5f1; padding: 1.5rem; border-radius: var(--radius-md); margin-top: 1.5rem;">
+                        <strong>How to Play:</strong>
+                        <ol style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                            <li>Print these clue cards</li>
+                            <li>Cut them out</li>
+                            <li>Hide each clue at the location it mentions</li>
+                            <li>Give the first clue to start the hunt!</li>
+                            <li>At the last location, hide a small treat or prize 💝</li>
+                        </ol>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-success" onclick="window.print()">
+                            🖨️ Print Clues
+                        </button>
+                        <button class="btn btn-secondary" onclick="showDashboard()">
+                            ← Back to Games
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Presidential Trivia Game -->
+    <div class="screen" id="presidentialTrivia">
+        <div class="container">
+            <div class="game-container">
+                <div class="game-header">
+                    <div class="game-icon">🎩</div>
+                    <h2>Presidential Trivia Challenge</h2>
+                    <p>Test your knowledge of U.S. Presidents!</p>
+                </div>
+
+                <div id="triviaStart">
+                    <div style="text-align: center; padding: 2rem;">
+                        <p style="font-size: 1.2rem; margin-bottom: 2rem;">10 questions about U.S. Presidents. Can you get them all right?</p>
+                        <button class="btn btn-primary" onclick="startTrivia()">
+                            🎩 Start Quiz
+                        </button>
+                    </div>
+                </div>
+
+                <div id="triviaGame" style="display: none;">
+                    <div class="score-display">
+                        <h3>Score: <span id="triviaScore">0</span> / 10</h3>
+                        <p>Question <span id="currentQuestion">1</span> of 10</p>
+                    </div>
+
+                    <div class="question-card">
+                        <div class="question-text" id="questionText"></div>
+                        <div class="answer-options" id="answerOptions"></div>
+                    </div>
+
+                    <div id="explanation" style="display: none; background: #e0f2fe; padding: 1rem; border-radius: var(--radius-md); margin-top: 1rem;">
+                        <strong>Did you know?</strong>
+                        <p id="explanationText"></p>
+                    </div>
+
+                    <div id="nextBtn" style="display: none; margin-top: 1.5rem; text-align: center;">
+                        <button class="btn btn-primary" onclick="nextQuestion()">
+                            Next Question →
+                        </button>
+                    </div>
+                </div>
+
+                <div id="triviaEnd" style="display: none;">
+                    <div style="text-align: center; padding: 2rem;">
+                        <h3 style="font-family: 'Fredoka', sans-serif; font-size: 2.5rem; margin-bottom: 1rem;">
+                            Quiz Complete! 🎉
+                        </h3>
+                        <div style="font-size: 3rem; margin-bottom: 1rem;" id="finalScoreEmoji"></div>
+                        <p style="font-size: 1.5rem; margin-bottom: 2rem;">
+                            You scored <strong id="finalScore"></strong> out of 10!
+                        </p>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" onclick="startTrivia()">
+                                🔄 Play Again
+                            </button>
+                            <button class="btn btn-secondary" onclick="showDashboard()">
+                                ← Back to Games
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Love Song Generator -->
+    <div class="screen" id="loveSong">
+        <div class="container">
+            <div class="game-container">
+                <div class="game-header">
+                    <div class="game-icon">🎵</div>
+                    <h2>Family Love Song Generator</h2>
+                    <p>Create silly, heartfelt lyrics about your family</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Your family name (e.g., "The Johnsons")</label>
+                    <input type="text" id="songFamilyName" placeholder="The Smiths">
+                </div>
+
+                <div class="form-group">
+                    <label>Pick your tune (we'll match the rhythm)</label>
+                    <select id="songTune">
+                        <option value="twinkle">Twinkle Twinkle Little Star</option>
+                        <option value="wheels">The Wheels on the Bus</option>
+                        <option value="happy">If You're Happy and You Know It</option>
+                        <option value="jingle">Jingle Bells</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>What makes your family special? (3 things, separated by commas)</label>
+                    <textarea id="songTraits" placeholder="We love game nights, We always help each other, We laugh a lot"></textarea>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="generateSong()">
+                        🎵 Generate Song
+                    </button>
+                </div>
+
+                <div id="songOutput" style="display: none;">
+                    <h3 style="font-family: 'Fredoka', sans-serif; text-align: center; margin: 2rem 0 1rem;">Your Family Song:</h3>
+                    <div style="background: linear-gradient(135deg, #ffe5f1, #ffeef6); padding: 2rem; border-radius: var(--radius-lg); border: 2px solid var(--primary);">
+                        <div id="songLyrics" style="font-family: 'Fredoka', sans-serif; font-size: 1.2rem; line-height: 1.8; white-space: pre-line;"></div>
+                    </div>
+                    <div style="background: #e0f2fe; padding: 1.5rem; border-radius: var(--radius-md); margin-top: 1.5rem;">
+                        <strong>🎤 Recording Tips:</strong>
+                        <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                            <li>Use your phone's voice recorder app</li>
+                            <li>Sing it together as a family!</li>
+                            <li>Add silly sound effects between verses</li>
+                            <li>Send it to grandparents - they'll love it! ❤️</li>
+                        </ul>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-success" onclick="window.print()">
+                            🖨️ Print Lyrics
+                        </button>
+                        <button class="btn btn-secondary" onclick="showDashboard()">
+                            ← Back to Games
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Machine Story -->
+    <div class="screen" id="timeMachine">
+        <div class="container">
+            <div class="game-container">
+                <div class="game-header">
+                    <div class="game-icon">⏰</div>
+                    <h2>Presidential Time Machine</h2>
+                    <p>Bring a president to 2026 - what would shock them?</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Pick a president to bring to 2026</label>
+                    <select id="president">
+                        <option value="George Washington">George Washington (1789)</option>
+                        <option value="Thomas Jefferson">Thomas Jefferson (1801)</option>
+                        <option value="Abraham Lincoln">Abraham Lincoln (1861)</option>
+                        <option value="Theodore Roosevelt">Theodore Roosevelt (1901)</option>
+                        <option value="FDR">Franklin D. Roosevelt (1933)</option>
+                        <option value="JFK">John F. Kennedy (1961)</option>
+                    </select>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="generateTimeMachine()">
+                        ⏰ Start Time Machine
+                    </button>
+                </div>
+
+                <div id="timeMachineOutput" style="display: none;">
+                    <h3 style="font-family: 'Fredoka', sans-serif; text-align: center; margin: 2rem 0 1rem;">Your Story:</h3>
+                    <div style="background: var(--bg-card); padding: 2rem; border-radius: var(--radius-lg); border: 2px solid var(--purple);">
+                        <div id="timeMachineStory" style="line-height: 1.8; font-size: 1.1rem;"></div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-success" onclick="window.print()">
+                            🖨️ Print Story
+                        </button>
+                        <button class="btn btn-secondary" onclick="showDashboard()">
+                            ← Back to Games
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            document.getElementById('headerBackBtn').style.display = screenId === 'dashboard' ? 'none' : 'inline-flex';
+            window.scrollTo(0, 0);
+        }
+
+        function showGame(gameId) {
+            showScreen(gameId);
+        }
+
+        function showDashboard() {
+            showScreen('dashboard');
+        }
+
+        // Comic Creator
+        function generateComic() {
+            const panels = [
+                { emoji: document.getElementById('panel1Emoji').value, text: document.getElementById('panel1Text').value },
+                { emoji: document.getElementById('panel2Emoji').value, text: document.getElementById('panel2Text').value },
+                { emoji: document.getElementById('panel3Emoji').value, text: document.getElementById('panel3Text').value },
+                { emoji: document.getElementById('panel4Emoji').value, text: document.getElementById('panel4Text').value }
+            ];
+
+            const preview = document.getElementById('comicPreview');
+            preview.innerHTML = panels.map((panel, i) => `
+                <div class="preview-panel">
+                    <div class="preview-emoji">${panel.emoji}</div>
+                    <div class="preview-text">${panel.text || `Panel ${i + 1}`}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('comicOutput').style.display = 'block';
+            document.getElementById('comicOutput').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Heart Hunt Clue Generator
+        const clueDatabase = [
+            { location: "refrigerator", clue: "I'm cold and full of treats so yummy,\nOpen my door to fill your tummy!" },
+            { location: "couch", clue: "Where you sit to watch TV at night,\nLook under the cushions, you're getting close, you're right!" },
+            { location: "bed", clue: "Where you lay your head to dream,\nCheck under the pillow for the next team!" },
+            { location: "bathroom mirror", clue: "Look at yourself, what do you see?\nBehind this glass, the next clue waits for thee!" },
+            { location: "front door", clue: "Ding dong! Visitors come through me,\nLook by my handle, what will you see?" },
+            { location: "kitchen table", clue: "Where the family gathers to eat and chat,\nUnder this surface, your next clue is at!" },
+            { location: "mailbox", clue: "Letters and packages come to me,\nOpen me up, what will you see?" },
+            { location: "bookshelf", clue: "Stories and knowledge I hold with care,\nBetween my pages, your clue is there!" },
+            { location: "washing machine", clue: "I spin and clean your dirty clothes,\nLift my lid and see where the next clue goes!" },
+            { location: "TV", clue: "I show you movies, games, and more,\nBehind my screen, see what's in store!" }
+        ];
+
+        function generateClues() {
+            const num = parseInt(document.getElementById('numClues').value);
+            const selectedClues = clueDatabase.slice(0, num);
+
+            const cluesList = document.getElementById('cluesList');
+            cluesList.innerHTML = selectedClues.map((clue, i) => `
+                <div class="clue-card">
+                    <div style="margin-bottom: 1rem;">
+                        <span class="clue-number">${i + 1}</span>
+                        <strong style="font-family: 'Fredoka', sans-serif; font-size: 1.1rem;">Clue ${i + 1}</strong>
+                    </div>
+                    <div class="clue-text">${clue.clue}</div>
+                    <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+                        <strong>Hide this at:</strong> ${clue.location}
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('cluesOutput').style.display = 'block';
+            document.getElementById('cluesOutput').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Presidential Trivia
+        const triviaQuestions = [
+            {
+                question: "Who was the first President of the United States?",
+                answers: ["George Washington", "Thomas Jefferson", "John Adams", "Benjamin Franklin"],
+                correct: 0,
+                explanation: "George Washington served as the first U.S. President from 1789 to 1797!"
+            },
+            {
+                question: "Which president is on the $5 bill?",
+                answers: ["Washington", "Jefferson", "Lincoln", "Hamilton"],
+                correct: 2,
+                explanation: "Abraham Lincoln appears on the $5 bill. He was the 16th President!"
+            },
+            {
+                question: "Who was the youngest elected president?",
+                answers: ["Theodore Roosevelt", "John F. Kennedy", "Bill Clinton", "Barack Obama"],
+                correct: 1,
+                explanation: "JFK was elected at age 43, making him the youngest elected president!"
+            },
+            {
+                question: "Which president served the most terms?",
+                answers: ["George Washington", "Thomas Jefferson", "Franklin D. Roosevelt", "Harry Truman"],
+                correct: 2,
+                explanation: "FDR served four terms from 1933-1945. Now presidents can only serve two terms!"
+            },
+            {
+                question: "Who was president during the Civil War?",
+                answers: ["Ulysses S. Grant", "Andrew Johnson", "Abraham Lincoln", "James Buchanan"],
+                correct: 2,
+                explanation: "Abraham Lincoln led the country through the Civil War from 1861-1865."
+            },
+            {
+                question: "Which president could not tell a lie about a cherry tree (in the famous story)?",
+                answers: ["George Washington", "Thomas Jefferson", "John Adams", "James Madison"],
+                correct: 0,
+                explanation: "The cherry tree story is a famous legend about young George Washington!"
+            },
+            {
+                question: "Who was the first president to live in the White House?",
+                answers: ["George Washington", "John Adams", "Thomas Jefferson", "James Madison"],
+                correct: 1,
+                explanation: "John Adams and his wife Abigail were the first to live in the White House in 1800!"
+            },
+            {
+                question: "Which president is on Mount Rushmore with Washington, Jefferson, and Lincoln?",
+                answers: ["Andrew Jackson", "Theodore Roosevelt", "Woodrow Wilson", "Franklin Roosevelt"],
+                correct: 1,
+                explanation: "Theodore 'Teddy' Roosevelt joins Washington, Jefferson, and Lincoln on Mount Rushmore!"
+            },
+            {
+                question: "Who was the tallest president ever?",
+                answers: ["George Washington", "Abraham Lincoln", "Lyndon Johnson", "Donald Trump"],
+                correct: 1,
+                explanation: "Abraham Lincoln was 6'4\" tall - the tallest president in U.S. history!"
+            },
+            {
+                question: "Which president had a teddy bear named after him?",
+                answers: ["Theodore Roosevelt", "William Taft", "Calvin Coolidge", "Herbert Hoover"],
+                correct: 0,
+                explanation: "The teddy bear was named after Theodore 'Teddy' Roosevelt after a famous hunting trip!"
+            }
+        ];
+
+        let triviaState = {
+            score: 0,
+            currentQ: 0,
+            answered: false
+        };
+
+        function startTrivia() {
+            triviaState = { score: 0, currentQ: 0, answered: false };
+            document.getElementById('triviaStart').style.display = 'none';
+            document.getElementById('triviaEnd').style.display = 'none';
+            document.getElementById('triviaGame').style.display = 'block';
+            updateTrivia();
+        }
+
+        function updateTrivia() {
+            const q = triviaQuestions[triviaState.currentQ];
+            document.getElementById('triviaScore').textContent = triviaState.score;
+            document.getElementById('currentQuestion').textContent = triviaState.currentQ + 1;
+            document.getElementById('questionText').textContent = q.question;
+
+            const optionsHTML = q.answers.map((answer, i) => `
+                <button class="answer-btn" onclick="checkAnswer(${i})">${answer}</button>
+            `).join('');
+            document.getElementById('answerOptions').innerHTML = optionsHTML;
+            document.getElementById('explanation').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'none';
+            triviaState.answered = false;
+        }
+
+        function checkAnswer(selected) {
+            if (triviaState.answered) return;
+            triviaState.answered = true;
+
+            const q = triviaQuestions[triviaState.currentQ];
+            const buttons = document.querySelectorAll('.answer-btn');
+
+            buttons[selected].classList.add(selected === q.correct ? 'correct' : 'incorrect');
+            if (selected !== q.correct) {
+                buttons[q.correct].classList.add('correct');
+            }
+
+            if (selected === q.correct) {
+                triviaState.score++;
+                document.getElementById('triviaScore').textContent = triviaState.score;
+            }
+
+            document.getElementById('explanationText').textContent = q.explanation;
+            document.getElementById('explanation').style.display = 'block';
+
+            if (triviaState.currentQ < triviaQuestions.length - 1) {
+                document.getElementById('nextBtn').style.display = 'block';
+            } else {
+                setTimeout(endTrivia, 2000);
+            }
+        }
+
+        function nextQuestion() {
+            triviaState.currentQ++;
+            updateTrivia();
+        }
+
+        function endTrivia() {
+            document.getElementById('triviaGame').style.display = 'none';
+            document.getElementById('triviaEnd').style.display = 'block';
+            document.getElementById('finalScore').textContent = triviaState.score;
+
+            const emoji = triviaState.score >= 9 ? '🏆' : triviaState.score >= 7 ? '🎉' : triviaState.score >= 5 ? '👍' : '📚';
+            document.getElementById('finalScoreEmoji').textContent = emoji;
+        }
+
+        // Love Song Generator
+        const songTemplates = {
+            twinkle: {
+                pattern: "AABB",
+                lines: [
+                    "[family], [family], we're so great",
+                    "[trait1] is something we celebrate",
+                    "[trait2], that's our way",
+                    "[trait3] every single day"
+                ]
+            },
+            wheels: {
+                pattern: "AAB",
+                lines: [
+                    "The [family] go [trait1]",
+                    "[trait2] all day long",
+                    "That's just how we roll!"
+                ]
+            },
+            happy: {
+                pattern: "AABB",
+                lines: [
+                    "If you're [trait1], clap your hands! 👏👏",
+                    "The [family] are here and we'll take a stand!",
+                    "[trait2] and [trait3] too",
+                    "We stick together, me and you!"
+                ]
+            },
+            jingle: {
+                pattern: "AABB",
+                lines: [
+                    "[family], [family], all the way",
+                    "Oh what fun it is when [trait1] every day!",
+                    "[trait2], [trait3] it's true",
+                    "We're the [family] and we love you!"
+                ]
+            }
+        };
+
+        function generateSong() {
+            const familyName = document.getElementById('songFamilyName').value || "Our Family";
+            const tune = document.getElementById('songTune').value;
+            const traits = document.getElementById('songTraits').value.split(',').map(t => t.trim());
+
+            if (traits.length < 3) {
+                alert('Please enter at least 3 things that make your family special!');
+                return;
+            }
+
+            const template = songTemplates[tune];
+            let lyrics = template.lines.map(line => {
+                return line
+                    .replace(/\[family\]/g, familyName)
+                    .replace(/\[trait1\]/g, traits[0] || "love each other")
+                    .replace(/\[trait2\]/g, traits[1] || "help one another")
+                    .replace(/\[trait3\]/g, traits[2] || "laugh together");
+            }).join('\n');
+
+            lyrics += "\n\n(Repeat 2-3 times and add your own verses!)";
+
+            document.getElementById('songLyrics').textContent = lyrics;
+            document.getElementById('songOutput').style.display = 'block';
+            document.getElementById('songOutput').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Time Machine Story Generator
+        const presidentialFacts = {
+            "George Washington": {
+                era: "1700s",
+                shocked: [
+                    "🛜 Everyone carries a computer in their pocket that can talk to anyone in the world instantly",
+                    "✈️ People can fly across the ocean in less than a day",
+                    "🏛️ Women and people of all backgrounds can vote and run for president",
+                    "🚗 Horseless carriages zoom everywhere at 70 miles per hour",
+                    "📺 You can watch moving pictures from your home showing events happening right now"
+                ]
+            },
+            "Thomas Jefferson": {
+                era: "1800s",
+                shocked: [
+                    "📚 All human knowledge is accessible through a device you can hold in one hand",
+                    "🔬 We've landed people on the moon and sent robots to Mars",
+                    "⚡ Entire cities are lit up at night with electricity",
+                    "🌐 The Louisiana Purchase you made is now filled with millions of people",
+                    "🗽 The Statue of Liberty stands in New York Harbor welcoming immigrants"
+                ]
+            },
+            "Abraham Lincoln": {
+                era: "1860s",
+                shocked: [
+                    "🗳️ The 13th Amendment you championed ended slavery, but the fight for equality continues",
+                    "🏙️ America is now connected by roads, rails, and wireless signals coast to coast",
+                    "💻 People work from home using computers instead of telegraphs",
+                    "🎬 Your face is on the $5 bill and Mount Rushmore",
+                    "📱 The whole country can communicate instantly without any wires"
+                ]
+            },
+            "Theodore Roosevelt": {
+                era: "1900s",
+                shocked: [
+                    "🌳 Your national parks are still protected and visited by millions every year",
+                    "🦅 The Panama Canal you built is still one of the world's most important waterways",
+                    "🧸 Teddy bears are still named after you!",
+                    "🚀 America has become the world's leading superpower",
+                    "🌍 The conservation movement you started is now global"
+                ]
+            },
+            "FDR": {
+                era: "1930s-40s",
+                shocked: [
+                    "📻 Your 'fireside chats' inspired how presidents communicate on social media today",
+                    "🏛️ Your New Deal programs like Social Security are still helping Americans",
+                    "🌏 The United Nations you helped create is still working for world peace",
+                    "♿ The Americans with Disabilities Act ensures accessibility for all",
+                    "🗽 America won the Cold War and the Soviet Union no longer exists"
+                ]
+            },
+            "JFK": {
+                era: "1960s",
+                shocked: [
+                    "🚀 We landed on the moon in 1969, fulfilling your vision!",
+                    "📱 Computers are now smaller than a briefcase and everyone has one",
+                    "🌈 The Civil Rights Movement you supported changed America forever",
+                    "🌐 The internet connects the entire world",
+                    "🗳️ A Black president named Barack Obama served two terms"
+                ]
+            }
+        };
+
+        function generateTimeMachine() {
+            const president = document.getElementById('president').value;
+            const facts = presidentialFacts[president];
+
+            const story = `
+                <h3 style="font-family: 'Fredoka', sans-serif; color: var(--primary); margin-bottom: 1rem;">
+                    ${president} Arrives in 2026!
+                </h3>
+
+                <p style="margin-bottom: 1rem;">
+                    <strong>WHOOSH!</strong> The time machine whirs to life and ${president} steps out, looking around in amazement.
+                </p>
+
+                <p style="margin-bottom: 1rem;">
+                    "Where am I?" he asks. "This is America... but in the year 2026!"
+                </p>
+
+                <h4 style="font-family: 'Fredoka', sans-serif; margin: 1.5rem 0 1rem;">
+                    What Would Shock ${president}:
+                </h4>
+
+                <div style="background: #ffe5f1; padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+                    ${facts.shocked.map(fact => `
+                        <div style="margin-bottom: 1rem; padding-left: 1rem;">
+                            ${fact}
+                        </div>
+                    `).join('')}
+                </div>
+
+                <p style="margin-bottom: 1rem;">
+                    After seeing all these amazing changes, ${president} smiled and said:
+                </p>
+
+                <p style="background: var(--bg); padding: 1rem; border-radius: var(--radius-md); font-style: italic; border-left: 4px solid var(--purple);">
+                    "The America I helped build has grown beyond my wildest dreams. Though much has changed, I can see the spirit of freedom and innovation I believed in still burns bright!"
+                </p>
+
+                <p style="margin-top: 1.5rem; text-align: center; font-weight: 600;">
+                    What else do you think would surprise ${president}? Draw or write your ideas!
+                </p>
+            `;
+
+            document.getElementById('timeMachineStory').innerHTML = story;
+            document.getElementById('timeMachineOutput').style.display = 'block';
+            document.getElementById('timeMachineOutput').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(reg => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker registration failed'));
+        }
+    </script>
+</body>
+</html>

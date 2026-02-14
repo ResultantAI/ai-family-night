@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+</head>
+<body>
+    <h2>PWA Icon Generator</h2>
+    <p>Open browser console and run the download functions</p>
+    <canvas id="icon192" width="192" height="192"></canvas>
+    <canvas id="icon512" width="512" height="512"></canvas>
+
+    <script>
+        function createIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#ff6b9d');
+            gradient.addColorStop(1, '#a78bfa');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+
+            // House emoji (simplified as circle + triangle)
+            ctx.fillStyle = '#ffffff';
+
+            // Circle for house base
+            ctx.beginPath();
+            ctx.arc(size/2, size/2 + size/8, size/3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Triangle for roof
+            ctx.beginPath();
+            ctx.moveTo(size/2, size/4);
+            ctx.lineTo(size/4, size/2);
+            ctx.lineTo(3*size/4, size/2);
+            ctx.closePath();
+            ctx.fill();
+
+            // Text
+            ctx.font = `bold ${size/4}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#ff6b9d';
+            ctx.fillText('AI', size/2, size/2 + size/8);
+
+            return canvas;
+        }
+
+        // Create icons
+        createIcon('icon192', 192);
+        createIcon('icon512', 512);
+
+        // Function to download icons
+        function downloadIcon(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Auto-download icons
+        console.log('Generating icons...');
+        setTimeout(() => {
+            downloadIcon('icon192', 'icon-192.png');
+        }, 500);
+        setTimeout(() => {
+            downloadIcon('icon512', 'icon-512.png');
+        }, 1000);
+
+        console.log('Icons generated! Check your downloads folder.');
+    </script>
+</body>
+</html>
