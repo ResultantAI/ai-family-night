@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Family Night | Interactive Family Games</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Interactive family games and activities - no external tools needed!">
+    <meta name="theme-color" content="#ff6b9d">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&family=Permanent+Marker&display=swap" rel="stylesheet">
+
+    <!-- Stripe -->
+    <script src="https://js.stripe.com/v3/"></script>
+
+    <style>
+        :root {
+            --primary: #ff6b9d;
+            --primary-dark: #e85888;
+            --secondary: #ffd93d;
+            --accent: #6bcf7f;
+            --purple: #a78bfa;
+            --blue: #60a5fa;
+            --red: #ef4444;
+            --gold: #fbbf24;
+
+            --bg: #fff5f8;
+            --bg-card: #ffffff;
+            --text: #2d1b3d;
+            --text-secondary: #6b5472;
+            --text-muted: #9d8ba5;
+
+            --radius-sm: 12px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+
+            --shadow: 0 4px 20px rgba(255, 107, 157, 0.15);
+            --shadow-lg: 0 8px 40px rgba(255, 107, 157, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .premium-badge {
+            background: var(--gold);
+            color: var(--text);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .back-btn, .upgrade-btn {
+            padding: 0.6rem 1.25rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            border-radius: var(--radius-sm);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .upgrade-btn {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--text);
+        }
+
+        .upgrade-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Presidential Portrait Animation */
+        .president-portrait {
+            position: fixed;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid var(--purple);
+            background: linear-gradient(135deg, #ffe5f1, #ffeef6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            box-shadow: var(--shadow-lg);
+            z-index: 50;
+            animation: peek 3s ease-in-out infinite;
+        }
+
+        .portrait-top-right {
+            top: -60px;
+            right: 20px;
+            animation: peekTopRight 3s ease-in-out infinite;
+        }
+
+        .portrait-top-left {
+            top: -60px;
+            left: 20px;
+            animation: peekTopLeft 3s ease-in-out infinite;
+        }
+
+        @keyframes peekTopRight {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(80px); }
+        }
+
+        @keyframes peekTopLeft {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(80px); }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            line-height: 1;
+        }
+
+        .pricing-card {
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: white;
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .pricing-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        .pricing-amount small {
+            font-size: 1.5rem;
+            opacity: 0.9;
+        }
+
+        .feature-list {
+            text-align: left;
+            margin: 1.5rem 0;
+        }
+
+        .feature-list li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--bg);
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        /* Game Cards */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .game-card {
+            background: var(--bg-card);
+            border: 2px solid #f0e5ed;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .game-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .game-card.seasonal {
+            background: linear-gradient(135deg, #ffe5f1, #ffeef6);
+            border-color: var(--primary);
+        }
+
+        .game-card.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .lock-icon {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .game-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .game-card h3 {
+            font-family: 'Fredoka', sans-serif;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .game-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .game-meta {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Drawing Upload */
+        .upload-zone {
+            border: 3px dashed var(--primary);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+            background: #ffe5f1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 1.5rem 0;
+        }
+
+        .upload-zone:hover {
+            background: #ffd1e3;
+            border-color: var(--primary-dark);
+        }
+
+        .upload-zone.dragover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .upload-preview {
+            margin-top: 1rem;
+            max-width: 100%;
+            border-radius: var(--radius-md);
+            max-height: 300px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Fredoka', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-success {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-gold {
+            background: var(--gold);
+            color: var(--text);
+            font-size: 1.2rem;
+            padding: 1.25rem 2rem;
+        }
+
+        .screen {
+            display: none;
+            padding: 2rem 0;
+            min-height: calc(100vh - 80px);
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: white;
+            padding: 2rem;
+            border-radius: var(--radius-xl);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .welcome-banner h1 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .seasonal-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .game-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .game-header h2 {
+            font-family: 'Fredoka', sans-serif;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #f0e5ed;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .action-buttons .btn {
+            flex: 1;
+        }
+
+        /* Weekly Calendar */
+        .calendar-week {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .calendar-day {
+            background: var(--bg-card);
+            border: 2px solid #f0e5ed;
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .calendar-day.today {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, #ffe5f1, #ffeef6);
+        }
+
+        .calendar-day.locked {
+            opacity: 0.5;
+            position: relative;
+        }
+
+        .day-name {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .day-game {
+            font-size: 2rem;
+            margin: 0.5rem 0;
+        }
+
+        .day-title {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .president-portrait {
+                width: 80px;
+                height: 80px;
+                font-size: 40px;
+            }
+
+            @keyframes peekTopRight {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(50px); }
+            }
+        }
+
+        @media print {
+            header, .action-buttons, .back-btn { display: none; }
+            .game-container { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <span>🏡</span>
+                <span>AI Family Night</span>
+                <span class="premium-badge" id="premiumBadge" style="display: none;">⭐ PREMIUM</span>
+            </div>
+            <button class="upgrade-btn" onclick="showUpgradeModal()">
+                ⭐ Upgrade
+            </button>
+        </div>
+    </header>
+
+    <!-- Upgrade Modal -->
+    <div class="modal" id="upgradeModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeUpgradeModal()">×</button>
+
+            <h2 style="font-family: 'Fredoka', sans-serif; text-align: center; color: var(--primary); margin-bottom: 1rem;">
+                ⭐ Unlock Premium Family Night
+            </h2>
+
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 1.5rem;">
+                Get a brand new interactive game <strong>every week</strong> + exclusive features!
+            </p>
+
+            <div class="pricing-card">
+                <div class="pricing-amount">
+                    $4.99<small>/month</small>
+                </div>
+                <p style="opacity: 0.9; margin-top: 0.5rem;">Just 16¢ per day</p>
+            </div>
+
+            <ul class="feature-list">
+                <li>✨ <strong>New game every week</strong> (52 games/year)</li>
+                <li>🎨 <strong>Gallery feature</strong> - Save & share your kids' artwork</li>
+                <li>🏆 <strong>Achievement badges</strong> for completing games</li>
+                <li>📧 <strong>Weekly email</strong> with game prep tips</li>
+                <li>🎁 <strong>Bonus seasonal games</strong> (holidays, birthdays)</li>
+                <li>👨‍👩‍👧‍👦 <strong>Family profiles</strong> - Track each child's creations</li>
+                <li>📱 <strong>Priority support</strong> + feature requests</li>
+            </ul>
+
+            <button class="btn btn-gold" onclick="startCheckout()">
+                ⭐ Start 7-Day Free Trial
+            </button>
+
+            <p style="text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 1rem;">
+                Cancel anytime. No commitments.
+            </p>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="screen active" id="dashboard">
+        <div class="container">
+            <div class="welcome-banner">
+                <h1>❤️ This Week's Family Games!</h1>
+                <p>5 FREE games available now - upgrade for weekly new content</p>
+            </div>
+
+            <h2 style="font-family: 'Fredoka', sans-serif; margin-bottom: 1.5rem; text-align: center;">Free Games (Valentine's Weekend)</h2>
+
+            <div class="games-grid">
+                <div class="game-card seasonal" onclick="showGame('comicCreator')">
+                    <div class="game-icon">💕</div>
+                    <h3>Love Story Comic</h3>
+                    <p>Create a 4-panel comic about your family's love</p>
+                    <div class="game-meta">
+                        <span>⏱️ 15 min</span>
+                        <span>✨ Interactive</span>
+                    </div>
+                </div>
+
+                <div class="game-card seasonal" onclick="showGame('heartHunt')">
+                    <div class="game-icon">💖</div>
+                    <h3>Heart Hunt</h3>
+                    <p>Generate rhyming clues for a scavenger hunt</p>
+                    <div class="game-meta">
+                        <span>⏱️ 20 min</span>
+                        <span>🎯 Printable</span>
+                    </div>
+                </div>
+
+                <div class="game-card seasonal" onclick="showGame('presidentialTrivia')">
+                    <div class="game-icon">🎩</div>
+                    <h3>Presidential Trivia</h3>
+                    <p>Test your knowledge with 10 fun questions</p>
+                    <div class="game-meta">
+                        <span>⏱️ 10 min</span>
+                        <span>🏆 Scoring</span>
+                    </div>
+                </div>
+
+                <div class="game-card seasonal" onclick="showGame('loveSong')">
+                    <div class="game-icon">🎵</div>
+                    <h3>Family Love Song</h3>
+                    <p>Generate silly lyrics about your family</p>
+                    <div class="game-meta">
+                        <span>⏱️ 15 min</span>
+                        <span>🎤 Rhymes Included</span>
+                    </div>
+                </div>
+
+                <div class="game-card seasonal" onclick="showGame('timeMachine')">
+                    <div class="game-icon">⏰</div>
+                    <h3>Time Machine Story</h3>
+                    <p>Bring a president to 2026 - what would shock them?</p>
+                    <div class="game-meta">
+                        <span>⏱️ 20 min</span>
+                        <span>📖 Story Builder</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coming Soon - Premium Games -->
+            <h2 style="font-family: 'Fredoka', sans-serif; margin: 3rem 0 1.5rem; text-align: center;">
+                ⭐ Coming This Week (Premium)
+            </h2>
+
+            <div class="games-grid">
+                <div class="game-card locked" onclick="showUpgradeModal()">
+                    <span class="lock-icon">🔒</span>
+                    <div class="game-icon">🎨</div>
+                    <h3>AI Art Studio</h3>
+                    <p>Transform your kid's drawings into amazing art styles</p>
+                    <div class="game-meta">
+                        <span>⏱️ 25 min</span>
+                        <span>🎨 Upload Photo</span>
+                    </div>
+                </div>
+
+                <div class="game-card locked" onclick="showUpgradeModal()">
+                    <span class="lock-icon">🔒</span>
+                    <div class="game-icon">🎭</div>
+                    <h3>Family Character Quiz</h3>
+                    <p>Which Disney character matches your personality?</p>
+                    <div class="game-meta">
+                        <span>⏱️ 15 min</span>
+                        <span>🎯 Personalized</span>
+                    </div>
+                </div>
+
+                <div class="game-card locked" onclick="showUpgradeModal()">
+                    <span class="lock-icon">🔒</span>
+                    <div class="game-icon">🦸</div>
+                    <h3>Superhero Origin Story</h3>
+                    <p>Create your child's superhero alter-ego</p>
+                    <div class="game-meta">
+                        <span>⏱️ 20 min</span>
+                        <span>⚡ Powers Included</span>
+                    </div>
+                </div>
+
+                <div class="game-card locked" onclick="showUpgradeModal()">
+                    <span class="lock-icon">🔒</span>
+                    <div class="game-icon">🏰</div>
+                    <h3>Dream Treehouse Designer</h3>
+                    <p>Design the ultimate backyard treehouse</p>
+                    <div class="game-meta">
+                        <span>⏱️ 30 min</span>
+                        <span>🏗️ Blueprint Mode</span>
+                    </div>
+                </div>
+
+                <div class="game-card locked" onclick="showUpgradeModal()">
+                    <span class="lock-icon">🔒</span>
+                    <div class="game-icon">🍕</div>
+                    <h3>Restaurant Menu Maker</h3>
+                    <p>Create a menu for your imaginary restaurant</p>
+                    <div class="game-meta">
+                        <span>⏱️ 20 min</span>
+                        <span>👨‍🍳 Recipe Cards</span>
+                    </div>
+                </div>
+
+                <div class="game-card locked" onclick="showUpgradeModal()">
+                    <span class="lock-icon">🔒</span>
+                    <div class="game-icon">🎮</div>
+                    <h3>Video Game Designer</h3>
+                    <p>Design your own video game concept</p>
+                    <div class="game-meta">
+                        <span>⏱️ 35 min</span>
+                        <span>🕹️ Characters + Story</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weekly Calendar Preview -->
+            <h2 style="font-family: 'Fredoka', sans-serif; margin: 3rem 0 1.5rem; text-align: center;">
+                📅 Your Weekly Game Calendar
+            </h2>
+
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem;">
+                Premium members get a new game every Sunday!
+            </p>
+
+            <div class="calendar-week">
+                <div class="calendar-day today">
+                    <div class="day-name">TODAY</div>
+                    <div class="day-game">💕</div>
+                    <div class="day-title">Love Story Comic</div>
+                </div>
+                <div class="calendar-day locked">
+                    <div class="day-name">Feb 20</div>
+                    <div class="day-game">🎨</div>
+                    <div class="day-title">AI Art Studio</div>
+                    <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem;">🔒</span>
+                </div>
+                <div class="calendar-day locked">
+                    <div class="day-name">Feb 27</div>
+                    <div class="day-game">🦸</div>
+                    <div class="day-title">Superhero Origin</div>
+                    <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem;">🔒</span>
+                </div>
+                <div class="calendar-day locked">
+                    <div class="day-name">Mar 6</div>
+                    <div class="day-game">🏰</div>
+                    <div class="day-title">Treehouse Designer</div>
+                    <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem;">🔒</span>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn btn-gold" onclick="showUpgradeModal()" style="max-width: 400px;">
+                    ⭐ Unlock All Games - $4.99/mo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Machine Game (Enhanced with Presidential Portraits) -->
+    <div class="screen" id="timeMachine">
+        <!-- Animated Presidential Portrait -->
+        <div class="president-portrait portrait-top-right" id="presidentPortrait">
+            👴
+        </div>
+
+        <div class="container">
+            <div class="game-container">
+                <div class="game-header">
+                    <div class="game-icon">⏰</div>
+                    <h2>Presidential Time Machine</h2>
+                    <p>Bring a president to 2026 - what would shock them?</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Pick a president to bring to 2026</label>
+                    <select id="president" onchange="updatePresidentPortrait()">
+                        <option value="George Washington">George Washington (1789)</option>
+                        <option value="Thomas Jefferson">Thomas Jefferson (1801)</option>
+                        <option value="Abraham Lincoln">Abraham Lincoln (1861)</option>
+                        <option value="Theodore Roosevelt">Theodore Roosevelt (1901)</option>
+                        <option value="FDR">Franklin D. Roosevelt (1933)</option>
+                        <option value="JFK">John F. Kennedy (1961)</option>
+                    </select>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="generateTimeMachine()">
+                        ⏰ Start Time Machine
+                    </button>
+                </div>
+
+                <div id="timeMachineOutput" style="display: none;">
+                    <h3 style="font-family: 'Fredoka', sans-serif; text-align: center; margin: 2rem 0 1rem;">Your Story:</h3>
+                    <div style="background: var(--bg-card); padding: 2rem; border-radius: var(--radius-lg); border: 2px solid var(--purple); position: relative;">
+                        <div id="timeMachineStory" style="line-height: 1.8; font-size: 1.1rem;"></div>
+                    </div>
+
+                    <!-- Drawing Upload Section -->
+                    <div style="margin-top: 2rem;">
+                        <h3 style="font-family: 'Fredoka', sans-serif; text-align: center; margin-bottom: 1rem;">
+                            🎨 Upload Your Drawing!
+                        </h3>
+                        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 1rem;">
+                            Draw this story and upload it to share with other families!
+                        </p>
+
+                        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('drawingUpload').click()">
+                            <input type="file" id="drawingUpload" accept="image/*" style="display: none;" onchange="handleDrawingUpload(event)">
+                            <div id="uploadPrompt">
+                                <p style="font-size: 3rem; margin-bottom: 0.5rem;">📸</p>
+                                <p style="font-weight: 600; margin-bottom: 0.5rem;">Click to upload or drag & drop</p>
+                                <p style="font-size: 0.9rem; color: var(--text-muted);">JPG, PNG, or HEIC - Max 10MB</p>
+                            </div>
+                            <img id="uploadPreview" class="upload-preview" style="display: none;" />
+                        </div>
+
+                        <button class="btn btn-success" id="submitDrawingBtn" style="display: none;" onclick="submitDrawing()">
+                            ✨ Submit to Gallery
+                        </button>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-success" onclick="window.print()">
+                            🖨️ Print Story
+                        </button>
+                        <button class="btn btn-primary" onclick="showDashboard()">
+                            ← Back to Games
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // User state
+        let isPremium = false;
+
+        // Presidential portrait emojis
+        const presidentEmojis = {
+            "George Washington": "🎩",
+            "Thomas Jefferson": "📜",
+            "Abraham Lincoln": "🎩",
+            "Theodore Roosevelt": "🧐",
+            "FDR": "👔",
+            "JFK": "😎"
+        };
+
+        // Update presidential portrait based on selection
+        function updatePresidentPortrait() {
+            const president = document.getElementById('president').value;
+            const portrait = document.getElementById('presidentPortrait');
+            portrait.textContent = presidentEmojis[president] || "👴";
+        }
+
+        // Navigation
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+
+            // Show/hide presidential portrait
+            const portrait = document.getElementById('presidentPortrait');
+            if (portrait) {
+                portrait.style.display = screenId === 'timeMachine' ? 'flex' : 'none';
+            }
+        }
+
+        function showGame(gameId) {
+            showScreen(gameId);
+        }
+
+        function showDashboard() {
+            showScreen('dashboard');
+        }
+
+        // Upgrade Modal
+        function showUpgradeModal() {
+            document.getElementById('upgradeModal').classList.add('active');
+        }
+
+        function closeUpgradeModal() {
+            document.getElementById('upgradeModal').classList.remove('active');
+        }
+
+        // Stripe Checkout (placeholder - needs actual Stripe configuration)
+        async function startCheckout() {
+            // TODO: Replace with actual Stripe price ID
+            alert('🚀 Opening checkout...\n\nIn production, this would redirect to Stripe checkout for $4.99/mo subscription.\n\nStripe Price ID: price_XXX (to be configured)');
+
+            // Example Stripe integration:
+            // const stripe = Stripe('pk_test_YOUR_PUBLISHABLE_KEY');
+            // const { error } = await stripe.redirectToCheckout({
+            //     lineItems: [{ price: 'price_YOUR_PRICE_ID', quantity: 1 }],
+            //     mode: 'subscription',
+            //     successUrl: window.location.origin + '?session_id={CHECKOUT_SESSION_ID}',
+            //     cancelUrl: window.location.origin
+            // });
+        }
+
+        // Time Machine Generator
+        const presidentialFacts = {
+            "George Washington": {
+                era: "1700s",
+                shocked: [
+                    "🛜 Everyone carries a computer in their pocket that can talk to anyone in the world instantly",
+                    "✈️ People can fly across the ocean in less than a day",
+                    "🏛️ Women and people of all backgrounds can vote and run for president",
+                    "🚗 Horseless carriages zoom everywhere at 70 miles per hour",
+                    "📺 You can watch moving pictures from your home showing events happening right now"
+                ]
+            },
+            "Thomas Jefferson": {
+                era: "1800s",
+                shocked: [
+                    "📚 All human knowledge is accessible through a device you can hold in one hand",
+                    "🔬 We've landed people on the moon and sent robots to Mars",
+                    "⚡ Entire cities are lit up at night with electricity",
+                    "🌐 The Louisiana Purchase you made is now filled with millions of people",
+                    "🗽 The Statue of Liberty stands in New York Harbor welcoming immigrants"
+                ]
+            },
+            "Abraham Lincoln": {
+                era: "1860s",
+                shocked: [
+                    "🗳️ The 13th Amendment you championed ended slavery, but the fight for equality continues",
+                    "🏙️ America is now connected by roads, rails, and wireless signals coast to coast",
+                    "💻 People work from home using computers instead of telegraphs",
+                    "🎬 Your face is on the $5 bill and Mount Rushmore",
+                    "📱 The whole country can communicate instantly without any wires"
+                ]
+            },
+            "Theodore Roosevelt": {
+                era: "1900s",
+                shocked: [
+                    "🌳 Your national parks are still protected and visited by millions every year",
+                    "🦅 The Panama Canal you built is still one of the world's most important waterways",
+                    "🧸 Teddy bears are still named after you!",
+                    "🚀 America has become the world's leading superpower",
+                    "🌍 The conservation movement you started is now global"
+                ]
+            },
+            "FDR": {
+                era: "1930s-40s",
+                shocked: [
+                    "📻 Your 'fireside chats' inspired how presidents communicate on social media today",
+                    "🏛️ Your New Deal programs like Social Security are still helping Americans",
+                    "🌏 The United Nations you helped create is still working for world peace",
+                    "♿ The Americans with Disabilities Act ensures accessibility for all",
+                    "🗽 America won the Cold War and the Soviet Union no longer exists"
+                ]
+            },
+            "JFK": {
+                era: "1960s",
+                shocked: [
+                    "🚀 We landed on the moon in 1969, fulfilling your vision!",
+                    "📱 Computers are now smaller than a briefcase and everyone has one",
+                    "🌈 The Civil Rights Movement you supported changed America forever",
+                    "🌐 The internet connects the entire world",
+                    "🗳️ A Black president named Barack Obama served two terms"
+                ]
+            }
+        };
+
+        function generateTimeMachine() {
+            const president = document.getElementById('president').value;
+            const facts = presidentialFacts[president];
+
+            const story = `
+                <h3 style="font-family: 'Fredoka', sans-serif; color: var(--primary); margin-bottom: 1rem;">
+                    ${president} Arrives in 2026!
+                </h3>
+
+                <p style="margin-bottom: 1rem;">
+                    <strong>WHOOSH!</strong> The time machine whirs to life and ${president} steps out, looking around in amazement.
+                </p>
+
+                <p style="margin-bottom: 1rem;">
+                    "Where am I?" he asks. "This is America... but in the year 2026!"
+                </p>
+
+                <h4 style="font-family: 'Fredoka', sans-serif; margin: 1.5rem 0 1rem;">
+                    What Would Shock ${president}:
+                </h4>
+
+                <div style="background: #ffe5f1; padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+                    ${facts.shocked.map(fact => `
+                        <div style="margin-bottom: 1rem; padding-left: 1rem;">
+                            ${fact}
+                        </div>
+                    `).join('')}
+                </div>
+
+                <p style="margin-bottom: 1rem;">
+                    After seeing all these amazing changes, ${president} smiled and said:
+                </p>
+
+                <p style="background: var(--bg); padding: 1rem; border-radius: var(--radius-md); font-style: italic; border-left: 4px solid var(--purple);">
+                    "The America I helped build has grown beyond my wildest dreams. Though much has changed, I can see the spirit of freedom and innovation I believed in still burns bright!"
+                </p>
+
+                <div style="margin-top: 2rem; padding: 1rem; background: #fff5f8; border-radius: var(--radius-md);">
+                    <p style="font-weight: 600; margin-bottom: 0.5rem;">💡 Your Turn!</p>
+                    <p style="font-size: 0.95rem; color: var(--text-secondary);">
+                        What else would shock ${president}? Draw a comic showing his reaction to something modern!
+                    </p>
+                </div>
+            `;
+
+            document.getElementById('timeMachineStory').innerHTML = story;
+            document.getElementById('timeMachineOutput').style.display = 'block';
+        }
+
+        // Drawing Upload
+        let uploadedDrawing = null;
+
+        function handleDrawingUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validate file size (10MB max)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File is too large! Please choose an image under 10MB.');
+                return;
+            }
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('uploadPreview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                document.getElementById('uploadPrompt').style.display = 'none';
+                document.getElementById('submitDrawingBtn').style.display = 'block';
+                uploadedDrawing = file;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Drag and drop
+        const uploadZone = document.getElementById('uploadZone');
+        if (uploadZone) {
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
+            });
+
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('dragover');
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    document.getElementById('drawingUpload').files = e.dataTransfer.files;
+                    handleDrawingUpload({ target: { files: [file] } });
+                }
+            });
+        }
+
+        function submitDrawing() {
+            if (!uploadedDrawing) {
+                alert('Please select a drawing first!');
+                return;
+            }
+
+            // TODO: Send to backend
+            alert('🎨 Drawing submitted!\n\nIn production, this would:\n1. Upload to cloud storage (S3)\n2. Save to database\n3. Add to public gallery\n4. Send confirmation email\n\n(Premium members only)');
+
+            // Premium-only feature
+            if (!isPremium) {
+                setTimeout(() => {
+                    if (confirm('Drawing gallery is a Premium feature!\n\nUpgrade to save and share your family\'s artwork?\n\n$4.99/mo - Cancel anytime')) {
+                        showUpgradeModal();
+                    }
+                }, 1000);
+            }
+        }
+
+        // Initialize
+        updatePresidentPortrait();
+
+        // Check for premium status (would come from backend/auth)
+        // For demo: Check URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('premium') === 'true') {
+            isPremium = true;
+            document.getElementById('premiumBadge').style.display = 'inline-block';
+        }
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(() => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker registration failed:', err));
+        }
+    </script>
+</body>
+</html>

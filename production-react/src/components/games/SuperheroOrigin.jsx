@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   BoltIcon,
@@ -9,11 +9,15 @@ import {
   SparklesIcon,
   ShieldCheckIcon
 } from '@heroicons/react/24/outline'
+import { useAutoSave, loadSavedState, saveToGallery } from '../../hooks/useAutoSave'
 
 export default function SuperheroOrigin() {
-  const [childName, setChildName] = useState('')
-  const [age, setAge] = useState('')
-  const [traits, setTraits] = useState({
+  // Load saved state on mount
+  const savedState = loadSavedState('superhero-game', {})
+
+  const [childName, setChildName] = useState(savedState.childName || '')
+  const [age, setAge] = useState(savedState.age || '')
+  const [traits, setTraits] = useState(savedState.traits || {
     brave: false,
     creative: false,
     kind: false,
@@ -21,10 +25,14 @@ export default function SuperheroOrigin() {
     smart: false,
     athletic: false
   })
-  const [favoriteColor, setFavoriteColor] = useState('blue')
-  const [superpower, setSuperpower] = useState('flight')
+  const [favoriteColor, setFavoriteColor] = useState(savedState.favoriteColor || 'blue')
+  const [superpower, setSuperpower] = useState(savedState.superpower || 'flight')
   const [heroGenerated, setHeroGenerated] = useState(false)
   const [generatedHero, setGeneratedHero] = useState(null)
+
+  // Auto-save game state as user types
+  const gameState = { childName, age, traits, favoriteColor, superpower }
+  useAutoSave('superhero-game', gameState, 1000)
 
   const traitOptions = [
     { id: 'brave', label: 'Brave', icon: '🦁' },
@@ -82,6 +90,14 @@ export default function SuperheroOrigin() {
 
     setGeneratedHero(hero)
     setHeroGenerated(true)
+
+    // Save to gallery
+    saveToGallery({
+      gameName: 'Superhero Origin',
+      data: { hero, childName, age },
+      preview: `${hero.name} - ${hero.tagline}`
+    })
+
     window.scrollTo({ top: 600, behavior: 'smooth' })
   }
 

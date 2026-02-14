@@ -69,10 +69,10 @@ export default function LoveStoryComic() {
             <HeartIcon className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Family Love Story Comic
+            Comic Strip Creator
           </h1>
           <p className="text-xl text-gray-600">
-            Create a 4-panel comic showing how your family shows love
+            Create a 4-panel comic strip - tell any story you want!
           </p>
         </div>
 
@@ -97,8 +97,8 @@ export default function LoveStoryComic() {
                     Panel {index + 1}
                     {index === 0 && ' - The Setup'}
                     {index === 1 && ' - The Action'}
-                    {index === 2 && ' - The Surprise'}
-                    {index === 3 && ' - The Love'}
+                    {index === 2 && ' - The Twist'}
+                    {index === 3 && ' - The Ending'}
                   </h3>
                 </div>
 
