@@ -8,6 +8,9 @@ import {
   SparklesIcon,
   ArrowRightIcon
 } from '@heroicons/react/24/outline'
+import VoiceInput from '../VoiceInput'
+import AgeButton from '../AgeButton'
+import { useAutoSave, AutoSaveIndicator } from '../../hooks/useAutoSave.jsx'
 
 export default function FamilyCharacterQuiz() {
   const [currentQuestion, setCurrentQuestion] = useState(0)
@@ -15,6 +18,14 @@ export default function FamilyCharacterQuiz() {
   const [quizComplete, setQuizComplete] = useState(false)
   const [playerName, setPlayerName] = useState('')
   const [quizStarted, setQuizStarted] = useState(false)
+
+  // Auto-save game state
+  const gameState = { currentQuestion, answers, quizComplete, playerName, quizStarted }
+  const { saveStatus, lastSaved } = useAutoSave(
+    'family-character-quiz',
+    gameState,
+    { useSupabase: false, gameId: 'family-character-quiz' }
+  )
 
   const questions = [
     {
@@ -153,15 +164,14 @@ export default function FamilyCharacterQuiz() {
           <div className="bg-white rounded-3xl shadow-xl border-2 border-purple-200 p-8">
             <div className="mb-6">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                What's your name?
+                What's your name? 🎤
               </label>
-              <input
-                type="text"
+              <VoiceInput
                 value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
+                onChange={setPlayerName}
                 onKeyPress={(e) => e.key === 'Enter' && startQuiz()}
                 placeholder="Emma"
-                className="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-3 pr-12 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
 
@@ -187,17 +197,19 @@ export default function FamilyCharacterQuiz() {
               </ul>
             </div>
 
-            <button
+            <AgeButton
               onClick={startQuiz}
               disabled={!playerName.trim()}
-              className={`w-full py-4 px-8 rounded-xl font-bold text-lg shadow-lg transition-all ${
-                playerName.trim()
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
+              variant="primary"
+              className="w-full"
             >
               Start Quiz
-            </button>
+            </AgeButton>
+
+            {/* Auto-save indicator */}
+            <div className="mt-4 flex justify-center">
+              <AutoSaveIndicator status={saveStatus} lastSaved={lastSaved} />
+            </div>
           </div>
         </div>
       </div>
@@ -267,20 +279,22 @@ export default function FamilyCharacterQuiz() {
           </div>
 
           <div className="mt-8 flex flex-col sm:flex-row gap-4">
-            <button
+            <AgeButton
               onClick={() => window.print()}
-              className="flex-1 bg-white border-2 border-purple-300 hover:border-purple-500 text-purple-600 py-4 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
+              variant="secondary"
+              className="flex-1 flex items-center justify-center gap-2"
             >
               <PrinterIcon className="w-5 h-5" />
               Print Result
-            </button>
-            <button
+            </AgeButton>
+            <AgeButton
               onClick={resetQuiz}
-              className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-4 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
+              variant="primary"
+              className="flex-1 flex items-center justify-center gap-2"
             >
               <SparklesIcon className="w-5 h-5" />
               Take Quiz Again
-            </button>
+            </AgeButton>
           </div>
         </div>
       </div>
@@ -318,10 +332,11 @@ export default function FamilyCharacterQuiz() {
 
           <div className="space-y-4">
             {questions[currentQuestion].options.map((option) => (
-              <button
+              <AgeButton
                 key={option.id}
                 onClick={() => handleAnswer(option)}
-                className="w-full p-6 rounded-2xl border-2 border-gray-200 bg-white hover:border-purple-500 hover:bg-gradient-to-br hover:from-purple-50 hover:to-pink-50 transition-all text-left group"
+                variant="secondary"
+                className="w-full text-left group"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -332,7 +347,7 @@ export default function FamilyCharacterQuiz() {
                   </div>
                   <ArrowRightIcon className="w-6 h-6 text-gray-400 group-hover:text-purple-500 transition-all" />
                 </div>
-              </button>
+              </AgeButton>
             ))}
           </div>
         </div>

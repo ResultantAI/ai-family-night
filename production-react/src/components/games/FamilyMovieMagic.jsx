@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   FilmIcon,
@@ -9,12 +9,25 @@ import {
   UserGroupIcon,
   ArrowPathIcon
 } from '@heroicons/react/24/outline'
-import { useAutoSave, loadSavedState, saveToGallery } from '../../hooks/useAutoSave'
+import { useAutoSave, loadSavedState, saveToGallery, AutoSaveIndicator } from '../../hooks/useAutoSave.jsx'
 import ShareButton from '../ShareButton'
+import { generateWithRateLimit } from '../../services/claudeService'
+import VoiceInput from '../VoiceInput'
+import AgeButton from '../AgeButton'
+import Soundboard from '../Soundboard'
+import { isGrandmaModeEnabled } from '../../utils/moderation'
 
 export default function FamilyMovieMagic() {
   // Load saved state
   const savedState = loadSavedState('movie-magic-game', {})
+
+  // Check if Extra Safe Mode is enabled and set game title dynamically
+  const [gameTitle, setGameTitle] = useState('Family Movie Magic')
+
+  useEffect(() => {
+    const grandmaMode = isGrandmaModeEnabled()
+    setGameTitle(grandmaMode ? 'Family Movie Night' : 'Family Movie Magic')
+  }, [])
 
   const [cast, setCast] = useState(savedState.cast || [
     { name: '', role: 'Hero' },
@@ -26,6 +39,8 @@ export default function FamilyMovieMagic() {
   const [setting, setSetting] = useState(savedState.setting || '')
   const [scriptGenerated, setScriptGenerated] = useState(false)
   const [generatedScript, setGeneratedScript] = useState(null)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState(null)
 
   // Auto-save game state
   const gameState = { cast, genre, setting }
@@ -70,21 +85,126 @@ export default function FamilyMovieMagic() {
     setCast(newCast)
   }
 
-  const handleGenerate = () => {
-    const selectedGenre = genreOptions.find(g => g.id === genre)
-    const script = generateScript(cast, selectedGenre, setting)
+  const handleGenerate = async () => {
+    setIsGenerating(true)
+    setError(null)
 
-    setGeneratedScript(script)
-    setScriptGenerated(true)
+    try {
+      const selectedGenre = genreOptions.find(g => g.id === genre)
+      const castWithNames = cast.filter(c => c.name.trim())
 
-    // Save to gallery
-    saveToGallery({
-      gameName: 'Family Movie Magic',
-      data: { script, cast, genre, setting },
-      preview: `${script.title} - ${selectedGenre.name}`
+      if (castWithNames.length < 2) {
+        setError('Please add at least 2 family members with names')
+        setIsGenerating(false)
+        return
+      }
+
+      // Prepare cast information for Claude
+      const castInfo = castWithNames.map(c => `${c.name} (${c.role})`).join(', ')
+
+      // Call Claude API with security measures
+      console.log('🎬 Generating movie script with Claude...')
+
+      const result = await generateWithRateLimit({
+        userInput: `Create a fun family movie script`,
+        gameContext: 'family-movie',
+        additionalData: {
+          cast: castWithNames,
+          genre: selectedGenre.id,
+          setting: setting || `a ${selectedGenre.name.toLowerCase()} setting`
+        },
+        maxTokens: 2048,
+        temperature: 0.8
+      })
+
+      if (!result.success) {
+        console.warn('Claude API failed, using fallback:', result.error)
+        // Fall back to template-based generation
+        const script = generateScript(cast, selectedGenre, setting)
+        setGeneratedScript(script)
+        setScriptGenerated(true)
+        setError(`AI generation unavailable. Using template. (${result.error})`)
+      } else {
+        // Parse Claude's response into script format
+        const script = parseClaudeScriptResponse(result.content, castWithNames, selectedGenre)
+        setGeneratedScript(script)
+        setScriptGenerated(true)
+        setError(null)
+
+        // Save to gallery
+        saveToGallery({
+          gameName: gameTitle,
+          data: { script, cast, genre, setting },
+          preview: `${script.title} - ${selectedGenre.name}`
+        })
+      }
+
+      window.scrollTo({ top: 600, behavior: 'smooth' })
+
+    } catch (error) {
+      console.error('Error generating script:', error)
+      setError(`Generation failed: ${error.message}`)
+
+      // Fall back to template-based generation
+      const selectedGenre = genreOptions.find(g => g.id === genre)
+      const script = generateScript(cast, selectedGenre, setting)
+      setGeneratedScript(script)
+      setScriptGenerated(true)
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  const parseClaudeScriptResponse = (claudeText, castList, genreData) => {
+    // Extract title (look for all caps title at the beginning)
+    const titleMatch = claudeText.match(/^([A-Z\s:]+)\n/m)
+    const title = titleMatch ? titleMatch[1].trim() : `${genreData.name} Adventure`
+
+    // Extract scenes by looking for scene headings (INT./EXT. format)
+    const scenePattern = /((?:INT\.|EXT\.)[^\n]+)\n([^]*?)(?=(?:INT\.|EXT\.)|FADE TO BLACK|$)/gi
+    const sceneMatches = [...claudeText.matchAll(scenePattern)]
+
+    const scenes = sceneMatches.map(match => {
+      const heading = match[1].trim()
+      const content = match[2].trim()
+
+      // Extract action lines and dialogue
+      const dialoguePattern = /([A-Z\s]+)\n(?:\(([^)]+)\)\n)?(?:[""]([^""]+)[""]|([^\n]+))/g
+      const actionPattern = /^(?![A-Z\s]+\n)[^\n]+/gm
+
+      const dialogue = []
+      let dialogueMatch
+
+      while ((dialogueMatch = dialoguePattern.exec(content)) !== null) {
+        dialogue.push({
+          character: dialogueMatch[1].trim(),
+          line: dialogueMatch[3] || dialogueMatch[4] || '',
+          direction: dialogueMatch[2] || ''
+        })
+      }
+
+      // Get action (everything before first character name)
+      const firstCharIndex = content.search(/[A-Z\s]+\n/)
+      const action = firstCharIndex > 0 ? content.slice(0, firstCharIndex).trim() : 'The scene unfolds.'
+
+      return {
+        heading,
+        action,
+        dialogue: dialogue.length > 0 ? dialogue : [{
+          character: castList[0]?.name || 'HERO',
+          line: 'This is going to be amazing!',
+          direction: ''
+        }]
+      }
     })
 
-    window.scrollTo({ top: 600, behavior: 'smooth' })
+    return {
+      title,
+      genre: genreData.name,
+      sceneHeading: scenes[0]?.heading || 'INT. LOCATION - DAY',
+      scenes: scenes.length > 0 ? scenes : generateSceneDialogue(castList, genreData.id, 'INT. LOCATION - DAY'),
+      castList
+    }
   }
 
   const generateScript = (castList, genreData, customSetting) => {
@@ -332,15 +452,21 @@ export default function FamilyMovieMagic() {
             </div>
           </div>
 
+          {/* Soundboard */}
+          <div className="mt-8">
+            <Soundboard />
+          </div>
+
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button
+          <div className="flex flex-col sm:flex-row gap-4 mt-6">
+            <AgeButton
               onClick={() => window.print()}
-              className="flex-1 bg-white border-2 border-purple-300 hover:border-purple-500 text-purple-600 py-4 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
+              variant="secondary"
+              className="flex-1 flex items-center justify-center gap-2"
             >
               <PrinterIcon className="w-5 h-5" />
               Print Script
-            </button>
+            </AgeButton>
 
             <ShareButton
               elementId="movie-script"
@@ -349,17 +475,18 @@ export default function FamilyMovieMagic() {
               text={`Check out our family movie script: ${generatedScript.title}!`}
             />
 
-            <button
+            <AgeButton
               onClick={() => {
                 setScriptGenerated(false)
                 setGeneratedScript(null)
                 window.scrollTo({ top: 0, behavior: 'smooth' })
               }}
-              className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-4 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
+              variant="primary"
+              className="flex-1 flex items-center justify-center gap-2"
             >
               <SparklesIcon className="w-5 h-5" />
               Create Another
-            </button>
+            </AgeButton>
           </div>
 
           {/* Tips */}
@@ -402,7 +529,7 @@ export default function FamilyMovieMagic() {
             <FilmIcon className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Family Movie Magic
+            {gameTitle}
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Create a custom movie script for your family to perform together!
@@ -433,14 +560,13 @@ export default function FamilyMovieMagic() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        Name
+                        Name 🎤
                       </label>
-                      <input
-                        type="text"
+                      <VoiceInput
                         value={member.name}
                         onChange={(e) => updateCast(index, 'name', e.target.value)}
                         placeholder="Family member"
-                        className="w-full px-3 py-2 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        className="w-full px-3 py-2 pr-10 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -508,32 +634,49 @@ export default function FamilyMovieMagic() {
           {/* Setting (Optional) */}
           <div className="mb-8">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Custom Setting (Optional)
+              Custom Setting (Optional) 🎤 <span className="text-xs text-gray-500">(Click mic to speak)</span>
             </label>
-            <input
-              type="text"
+            <VoiceInput
               value={setting}
               onChange={(e) => setSetting(e.target.value)}
               placeholder="e.g., 'Our Kitchen' or 'The Backyard'"
-              className="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-3 pr-12 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
 
           {/* Generate Button */}
           <button
             onClick={handleGenerate}
-            disabled={!canGenerate}
+            disabled={!canGenerate || isGenerating}
             className={`w-full py-4 px-8 rounded-xl font-bold text-lg shadow-lg transition-all ${
-              canGenerate
+              canGenerate && !isGenerating
                 ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
             <span className="flex items-center justify-center gap-2">
-              <SparklesIcon className="w-6 h-6" />
-              Generate Movie Script
+              {isGenerating ? (
+                <>
+                  <ArrowPathIcon className="w-6 h-6 animate-spin" />
+                  Generating with AI...
+                </>
+              ) : (
+                <>
+                  <SparklesIcon className="w-6 h-6" />
+                  Generate Movie Script
+                </>
+              )}
             </span>
           </button>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mt-4 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
+              <p className="text-yellow-800 text-sm">
+                ⚠️ {error}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Info Box */}

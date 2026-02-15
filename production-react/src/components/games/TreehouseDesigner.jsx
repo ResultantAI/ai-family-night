@@ -9,6 +9,10 @@ import {
   WrenchScrewdriverIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline'
+import VoiceInput from '../VoiceInput'
+import AgeButton from '../AgeButton'
+import { useAutoSave, AutoSaveIndicator } from '../../hooks/useAutoSave.jsx'
+import ShareButton from '../ShareButton'
 
 export default function TreehouseDesigner() {
   const [treehouseName, setTreehouseName] = useState('')
@@ -21,6 +25,14 @@ export default function TreehouseDesigner() {
     windows: 'multiple'
   })
   const [blueprintGenerated, setBlueprintGenerated] = useState(false)
+
+  // Auto-save game state
+  const gameState = { treehouseName, selectedOptions, blueprintGenerated }
+  const { saveStatus, lastSaved } = useAutoSave(
+    'treehouse-designer',
+    gameState,
+    { useSupabase: false, gameId: 'treehouse-designer' }
+  )
 
   const sizeOptions = [
     { id: 'small', name: 'Cozy Nest', size: '6x8 feet', capacity: '2-3 kids' },
@@ -162,14 +174,13 @@ export default function TreehouseDesigner() {
             {/* Treehouse Name */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Name Your Treehouse
+                Name Your Treehouse 🎤
               </label>
-              <input
-                type="text"
+              <VoiceInput
                 value={treehouseName}
-                onChange={(e) => setTreehouseName(e.target.value)}
+                onChange={setTreehouseName}
                 placeholder="The Eagle's Nest"
-                className="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-3 pr-12 border-2 border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>
 
@@ -305,20 +316,22 @@ export default function TreehouseDesigner() {
               </div>
             </div>
 
-            <button
+            <AgeButton
               onClick={handleGenerate}
               disabled={!canGenerate}
-              className={`w-full py-4 px-8 rounded-xl font-bold text-lg shadow-lg transition-all transform ${
-                canGenerate
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white hover:scale-105'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
+              variant="primary"
+              className="w-full"
             >
               <div className="flex items-center justify-center gap-2">
                 <WrenchScrewdriverIcon className="w-6 h-6" />
                 {canGenerate ? 'Generate Blueprint' : 'Name your treehouse first'}
               </div>
-            </button>
+            </AgeButton>
+
+            {/* Auto-save indicator */}
+            <div className="mt-4 flex justify-center">
+              <AutoSaveIndicator status={saveStatus} lastSaved={lastSaved} />
+            </div>
           </div>
         </div>
 
@@ -326,7 +339,7 @@ export default function TreehouseDesigner() {
         {blueprintGenerated && (
           <div className="space-y-8 animate-fadeIn">
             {/* Blueprint Header */}
-            <div className="bg-white rounded-3xl shadow-xl border-2 border-green-200 overflow-hidden">
+            <div id="treehouse-blueprint-output" className="bg-white rounded-3xl shadow-xl border-2 border-green-200 overflow-hidden">
               <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-8 text-white">
                 <h2 className="text-4xl font-bold text-center mb-2">{treehouseName}</h2>
                 <p className="text-center text-lg opacity-90">
@@ -440,23 +453,33 @@ export default function TreehouseDesigner() {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <button
+              <AgeButton
                 onClick={() => window.print()}
-                className="flex-1 bg-white border-2 border-green-300 hover:border-green-500 text-green-600 py-4 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
+                variant="secondary"
+                className="flex-1 flex items-center justify-center gap-2"
               >
                 <PrinterIcon className="w-5 h-5" />
                 Print Blueprint
-              </button>
-              <button
+              </AgeButton>
+              <div className="flex-1">
+                <ShareButton
+                  elementId="treehouse-blueprint-output"
+                  filename={`${treehouseName.replace(/\s+/g, '-')}-treehouse.png`}
+                  title={`${treehouseName} Treehouse Blueprint`}
+                  text={`Check out our treehouse blueprint design! Created with AI Family Night.`}
+                />
+              </div>
+              <AgeButton
                 onClick={() => {
                   setBlueprintGenerated(false)
                   window.scrollTo({ top: 0, behavior: 'smooth' })
                 }}
-                className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-4 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
+                variant="primary"
+                className="flex-1 flex items-center justify-center gap-2"
               >
                 <SparklesIcon className="w-5 h-5" />
                 Design Another Treehouse
-              </button>
+              </AgeButton>
             </div>
           </div>
         )}

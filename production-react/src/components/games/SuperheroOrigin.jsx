@@ -9,7 +9,12 @@ import {
   SparklesIcon,
   ShieldCheckIcon
 } from '@heroicons/react/24/outline'
-import { useAutoSave, loadSavedState, saveToGallery } from '../../hooks/useAutoSave'
+import { useAutoSave, loadSavedState, saveToGallery, AutoSaveIndicator } from '../../hooks/useAutoSave.jsx'
+import VoiceInput from '../VoiceInput'
+import AgeButton from '../AgeButton'
+import ReadAloud from '../ReadAloud'
+import ShareButton from '../ShareButton'
+import { generateWithRateLimit } from '../../services/claudeService'
 
 export default function SuperheroOrigin() {
   // Load saved state on mount
@@ -29,6 +34,8 @@ export default function SuperheroOrigin() {
   const [superpower, setSuperpower] = useState(savedState.superpower || 'flight')
   const [heroGenerated, setHeroGenerated] = useState(false)
   const [generatedHero, setGeneratedHero] = useState(null)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState('')
 
   // Auto-save game state as user types
   const gameState = { childName, age, traits, favoriteColor, superpower }
@@ -61,10 +68,94 @@ export default function SuperheroOrigin() {
     { id: 'teleportation', name: 'Teleportation', description: 'Travel anywhere instantly' }
   ]
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     const selectedTraits = Object.keys(traits).filter(key => traits[key])
+    const selectedPower = superpowers.find(p => p.id === superpower)
 
-    // Generate hero name based on traits and power
+    setIsGenerating(true)
+    setError('')
+
+    try {
+      // Call Claude to generate superhero
+      const result = await generateWithRateLimit({
+        userInput: `Create a superhero for ${childName}, age ${age}`,
+        gameContext: 'superhero-origin',
+        additionalData: {
+          childName,
+          age,
+          traits: selectedTraits,
+          color: colorThemes[favoriteColor].name,
+          superpower: selectedPower.name
+        },
+        maxTokens: 1500,
+        temperature: 0.8
+      })
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to generate superhero')
+      }
+
+      // Parse Claude's response
+      const hero = parseHeroResponse(result.content, selectedTraits)
+
+      setGeneratedHero(hero)
+      setHeroGenerated(true)
+
+      // Save to gallery
+      saveToGallery({
+        gameName: 'Superhero Origin',
+        data: { hero, childName, age },
+        preview: `${hero.name} - ${hero.tagline}`
+      })
+
+      window.scrollTo({ top: 600, behavior: 'smooth' })
+    } catch (err) {
+      console.error('Error generating superhero:', err)
+      setError('Oops! Our AI had trouble creating your hero. Please try again!')
+
+      // Fallback to template-based generation
+      const hero = generateFallbackHero(selectedTraits, selectedPower)
+      setGeneratedHero(hero)
+      setHeroGenerated(true)
+
+      saveToGallery({
+        gameName: 'Superhero Origin',
+        data: { hero, childName, age },
+        preview: `${hero.name} - ${hero.tagline}`
+      })
+
+      window.scrollTo({ top: 600, behavior: 'smooth' })
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  // Parse Claude's JSON response into hero object
+  const parseHeroResponse = (content, selectedTraits) => {
+    try {
+      const jsonMatch = content.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0])
+        return {
+          name: parsed.name || 'The Amazing Hero',
+          tagline: parsed.tagline || 'Fighting for justice',
+          origin: parsed.origin || generateOrigin(childName, age, selectedTraits),
+          powers: parsed.powers || generatePowers(superpower, selectedTraits),
+          weaknesses: parsed.weaknesses || generateWeaknesses(selectedTraits),
+          costume: parsed.costume || generateCostume(favoriteColor),
+          mission: parsed.mission || generateMission(selectedTraits)
+        }
+      }
+    } catch (e) {
+      console.error('Error parsing hero response:', e)
+    }
+
+    // If parsing fails, use fallback
+    return generateFallbackHero(selectedTraits, superpowers.find(p => p.id === superpower))
+  }
+
+  // Fallback template-based generation (original logic)
+  const generateFallbackHero = (selectedTraits, selectedPower) => {
     const heroNames = {
       brave: ['Captain', 'Guardian', 'Defender'],
       creative: ['Artisan', 'Visionary', 'Creator'],
@@ -78,7 +169,7 @@ export default function SuperheroOrigin() {
     const heroPrefix = heroNames[primaryTrait][Math.floor(Math.random() * 3)]
     const heroSuffix = favoriteColor.charAt(0).toUpperCase() + favoriteColor.slice(1)
 
-    const hero = {
+    return {
       name: `${heroPrefix} ${heroSuffix}`,
       tagline: generateTagline(selectedTraits, superpower),
       origin: generateOrigin(childName, age, selectedTraits),
@@ -87,18 +178,6 @@ export default function SuperheroOrigin() {
       costume: generateCostume(favoriteColor),
       mission: generateMission(selectedTraits)
     }
-
-    setGeneratedHero(hero)
-    setHeroGenerated(true)
-
-    // Save to gallery
-    saveToGallery({
-      gameName: 'Superhero Origin',
-      data: { hero, childName, age },
-      preview: `${hero.name} - ${hero.tagline}`
-    })
-
-    window.scrollTo({ top: 600, behavior: 'smooth' })
   }
 
   const generateTagline = (traits, power) => {
@@ -206,14 +285,13 @@ export default function SuperheroOrigin() {
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Child's Name
+                  Child's Name 🎤 <span className="text-xs text-gray-500">(Click mic to speak)</span>
                 </label>
-                <input
-                  type="text"
+                <VoiceInput
                   value={childName}
                   onChange={(e) => setChildName(e.target.value)}
                   placeholder="Emma"
-                  className="w-full px-4 py-3 border-2 border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-4 py-3 pr-12 border-2 border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
               </div>
 
@@ -305,18 +383,33 @@ export default function SuperheroOrigin() {
 
             <button
               onClick={handleGenerate}
-              disabled={!canGenerate}
+              disabled={!canGenerate || isGenerating}
               className={`w-full py-4 px-8 rounded-xl font-bold text-lg shadow-lg transition-all transform ${
-                canGenerate
+                canGenerate && !isGenerating
                   ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white hover:scale-105'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
-                <BoltIcon className="w-6 h-6" />
-                {canGenerate ? 'Create Superhero' : 'Fill in all fields first'}
+                {isGenerating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                    Crafting your superhero with AI...
+                  </>
+                ) : (
+                  <>
+                    <BoltIcon className="w-6 h-6" />
+                    {canGenerate ? 'Create Superhero' : 'Fill in all fields first'}
+                  </>
+                )}
               </div>
             </button>
+
+            {error && (
+              <div className="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl text-red-700 text-center">
+                {error}
+              </div>
+            )}
           </div>
         </div>
 
@@ -324,7 +417,7 @@ export default function SuperheroOrigin() {
         {heroGenerated && generatedHero && (
           <div className="space-y-8 animate-fadeIn">
             {/* Hero Card */}
-            <div className="bg-white rounded-3xl shadow-xl border-2 border-orange-200 overflow-hidden">
+            <div id="superhero-profile-output" className="bg-white rounded-3xl shadow-xl border-2 border-orange-200 overflow-hidden">
               <div
                 className="p-8 text-white"
                 style={{
@@ -341,6 +434,12 @@ export default function SuperheroOrigin() {
               </div>
 
               <div className="p-8 space-y-6">
+                {/* Read Aloud Button */}
+                <div className="flex justify-center no-print">
+                  <ReadAloud
+                    text={`${generatedHero.name}. Tagline: ${generatedHero.tagline}. Origin Story: ${generatedHero.origin}. Superpowers: ${generatedHero.powers.join(', ')}. Costume Design: Primary Color ${favoriteColor}, features ${generatedHero.costume?.features || 'special design'}. Catchphrase: ${generatedHero.catchphrase}. Battle Cry: ${generatedHero.battleCry}`}
+                  />
+                </div>
                 {/* Origin Story */}
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
@@ -437,6 +536,14 @@ export default function SuperheroOrigin() {
                 <PrinterIcon className="w-5 h-5" />
                 Print Hero Profile
               </button>
+              <div className="flex-1">
+                <ShareButton
+                  elementId="superhero-profile-output"
+                  filename={`${generatedHero.name.replace(/\s+/g, '-')}-superhero.png`}
+                  title={generatedHero.name}
+                  text={`Check out my superhero ${generatedHero.name}! ${generatedHero.tagline} Created with AI Family Night.`}
+                />
+              </div>
               <button
                 onClick={() => {
                   setHeroGenerated(false)

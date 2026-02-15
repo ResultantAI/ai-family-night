@@ -8,6 +8,7 @@ import {
   CheckCircleIcon,
   StarIcon
 } from '@heroicons/react/24/outline'
+import Logo from '../components/Logo'
 
 export default function Landing() {
   const [billingCycle, setBillingCycle] = useState('monthly')
@@ -18,10 +19,7 @@ export default function Landing() {
       <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
-              <SparklesIcon className="w-8 h-8 text-purple-600" />
-              <span className="text-xl font-bold text-gray-900">AI Family Night</span>
-            </div>
+            <Logo className="w-8 h-8" textClassName="text-lg" />
             <div className="flex items-center gap-4">
               <Link
                 to="/login"
@@ -64,6 +62,34 @@ export default function Landing() {
           <p className="mt-4 text-sm text-gray-500">
             No credit card required • Cancel anytime
           </p>
+
+          {/* Trust Badges */}
+          <div className="mt-12 max-w-xl mx-auto">
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <CheckCircleIcon className="w-6 h-6 text-green-600" />
+                <h3 className="font-bold text-gray-900">Safe, High-Quality Screen Time</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+                <div className="flex items-center gap-2">
+                  <LockClosedIcon className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  <span>No ads, ever</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  <span>No in-app purchases</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  <span>Parent controls built-in</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  <span>Ages 5-12 expert-designed</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -182,7 +208,7 @@ export default function Landing() {
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                Annual <span className="text-green-600 text-sm ml-1">(Save 20%)</span>
+                Annual <span className="text-green-600 text-sm ml-1">(Save 50%)</span>
               </button>
             </div>
           </div>
@@ -224,14 +250,14 @@ export default function Landing() {
               <h3 className="text-xl font-bold text-gray-900">Premium</h3>
               <div className="mt-4 flex items-baseline">
                 <span className="text-5xl font-bold text-gray-900">
-                  {billingCycle === 'monthly' ? '$9.99' : '$79'}
+                  {billingCycle === 'monthly' ? '$9.99' : '$59.99'}
                 </span>
                 <span className="ml-2 text-gray-600">
                   /{billingCycle === 'monthly' ? 'month' : 'year'}
                 </span>
               </div>
               <p className="mt-2 text-gray-600">
-                {billingCycle === 'annual' && 'Just $6.58/month • '}
+                {billingCycle === 'annual' && 'Just $5/month • '}
                 New game every Sunday
               </p>
 

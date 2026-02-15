@@ -8,6 +8,11 @@ import {
   ArrowLeftIcon,
   SparklesIcon
 } from '@heroicons/react/24/outline'
+import VoiceTextarea from '../VoiceTextarea'
+import AgeButton from '../AgeButton'
+import { useAutoSave, AutoSaveIndicator } from '../../hooks/useAutoSave.jsx'
+import ReadAloud from '../ReadAloud'
+import ShareButton from '../ShareButton'
 
 export default function LoveStoryComic() {
   const [panels, setPanels] = useState([
@@ -17,6 +22,14 @@ export default function LoveStoryComic() {
     { emoji: '👦', text: '' }
   ])
   const [comicGenerated, setComicGenerated] = useState(false)
+
+  // Auto-save game state
+  const gameState = { panels, comicGenerated }
+  const { saveStatus, lastSaved } = useAutoSave(
+    'love-story-comic',
+    gameState,
+    { useSupabase: false, gameId: 'love-story-comic' }
+  )
 
   const emojiOptions = [
     { value: '👨', label: 'Dad' },
@@ -122,9 +135,9 @@ export default function LoveStoryComic() {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      What happens in this panel?
+                      What happens in this panel? 🎤 <span className="text-xs text-gray-500">(Click mic to speak)</span>
                     </label>
-                    <textarea
+                    <VoiceTextarea
                       value={panel.text}
                       onChange={(e) => updatePanel(index, 'text', e.target.value)}
                       placeholder={
@@ -133,7 +146,7 @@ export default function LoveStoryComic() {
                         index === 2 ? 'She added extra chocolate chips!' :
                         'We all hug and say we love each other'
                       }
-                      className="w-full px-4 py-3 border-2 border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none bg-white"
+                      className="w-full px-4 py-3 pr-12 border-2 border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none bg-white"
                       rows={3}
                     />
                   </div>
@@ -142,29 +155,38 @@ export default function LoveStoryComic() {
             ))}
           </div>
 
-          <button
+          <AgeButton
             onClick={handleGenerate}
             disabled={!allPanelsFilled}
-            className={`w-full py-4 px-8 rounded-xl font-bold text-lg shadow-lg transition-all transform ${
-              allPanelsFilled
-                ? 'bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white hover:scale-105'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
+            variant="primary"
+            className="w-full"
           >
             <div className="flex items-center justify-center gap-2">
               <HeartIcon className="w-6 h-6" />
               {allPanelsFilled ? 'Generate Comic' : 'Fill in all panels first'}
             </div>
-          </button>
+          </AgeButton>
+
+          {/* Auto-save indicator */}
+          <div className="mt-4 flex justify-center">
+            <AutoSaveIndicator status={saveStatus} lastSaved={lastSaved} />
+          </div>
         </div>
 
         {/* Generated Comic */}
         {comicGenerated && (
           <div className="space-y-8 animate-fadeIn">
-            <div className="bg-white rounded-3xl shadow-xl border-2 border-pink-200 p-8">
-              <h2 className="text-3xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-red-600">
+            <div id="love-story-comic-output" className="bg-white rounded-3xl shadow-xl border-2 border-pink-200 p-8">
+              <h2 className="text-3xl font-bold text-center mb-4 text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-red-600">
                 Your Family Love Story
               </h2>
+
+              {/* Read Aloud Button */}
+              <div className="flex justify-center mb-8 no-print">
+                <ReadAloud
+                  text={`Your Family Love Story. ${panels.map((panel, i) => `Panel ${i + 1}: ${panel.text}`).join('. ')}. This is how we show love in our family!`}
+                />
+              </div>
 
               {/* Comic Strip */}
               <div className="grid md:grid-cols-2 gap-6 mb-8">
@@ -237,18 +259,23 @@ export default function LoveStoryComic() {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <button
+              <AgeButton
                 onClick={() => window.print()}
-                className="flex-1 bg-white border-2 border-pink-300 hover:border-pink-500 text-pink-600 py-4 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
+                variant="secondary"
+                className="flex-1 flex items-center justify-center gap-2"
               >
                 <PrinterIcon className="w-5 h-5" />
                 Print Comic
-              </button>
-              <button className="flex-1 bg-white border-2 border-pink-300 hover:border-pink-500 text-pink-600 py-4 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all">
-                <PhotoIcon className="w-5 h-5" />
-                Save as Image
-              </button>
-              <button
+              </AgeButton>
+              <div className="flex-1">
+                <ShareButton
+                  elementId="love-story-comic-output"
+                  filename="family-love-story-comic.png"
+                  title="Our Family Love Story Comic"
+                  text="Check out our family love story comic! Created with AI Family Night."
+                />
+              </div>
+              <AgeButton
                 onClick={() => {
                   setPanels([
                     { emoji: '👨', text: '' },
@@ -259,11 +286,12 @@ export default function LoveStoryComic() {
                   setComicGenerated(false)
                   window.scrollTo({ top: 0, behavior: 'smooth' })
                 }}
-                className="flex-1 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white py-4 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
+                variant="primary"
+                className="flex-1 flex items-center justify-center gap-2"
               >
                 <SparklesIcon className="w-5 h-5" />
                 Create Another Comic
-              </button>
+              </AgeButton>
             </div>
           </div>
         )}

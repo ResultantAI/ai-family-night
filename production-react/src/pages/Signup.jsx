@@ -1,6 +1,8 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { SparklesIcon, EnvelopeIcon, LockClosedIcon, UserIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { EnvelopeIcon, LockClosedIcon, UserIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { supabase, signUp } from '../lib/supabase'
+import Logo from '../components/Logo'
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -13,6 +15,20 @@ export default function Signup() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [agreedToTerms, setAgreedToTerms] = useState(false)
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirectTo = searchParams.get('redirect') || '/onboarding'
+
+  // Check if already logged in
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        navigate(redirectTo)
+      }
+    }
+    checkUser()
+  }, [navigate, redirectTo])
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -34,11 +50,51 @@ export default function Signup() {
 
     setLoading(true)
 
-    // TODO: Connect to backend API
-    setTimeout(() => {
-      console.log('Signup:', formData)
-      window.location.href = '/dashboard'
-    }, 1000)
+    const result = await signUp(formData.email, formData.password, {
+      firstName: formData.firstName,
+      lastName: formData.lastName
+    })
+
+    if (result.success) {
+      navigate(redirectTo)
+    } else {
+      setError(result.error)
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleSignup = async () => {
+    setLoading(true)
+    setError('')
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`
+      }
+    })
+
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+    }
+  }
+
+  const handleAppleSignup = async () => {
+    setLoading(true)
+    setError('')
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`
+      }
+    })
+
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+    }
   }
 
   const passwordStrength = () => {
@@ -57,9 +113,8 @@ export default function Signup() {
       <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center gap-2">
-              <SparklesIcon className="w-8 h-8 text-purple-600" />
-              <span className="text-xl font-bold text-gray-900">AI Family Night</span>
+            <Link to="/">
+              <Logo className="w-8 h-8" textClassName="text-lg" />
             </Link>
             <div className="text-sm text-gray-600">
               Already have an account?{' '}
@@ -274,7 +329,9 @@ export default function Signup() {
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  className="w-full inline-flex justify-center items-center gap-2 py-3 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={handleGoogleSignup}
+                  disabled={loading}
+                  className="w-full inline-flex justify-center items-center gap-2 py-3 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -287,7 +344,9 @@ export default function Signup() {
 
                 <button
                   type="button"
-                  className="w-full inline-flex justify-center items-center gap-2 py-3 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={handleAppleSignup}
+                  disabled={loading}
+                  className="w-full inline-flex justify-center items-center gap-2 py-3 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/>

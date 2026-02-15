@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   SparklesIcon,
@@ -8,11 +8,24 @@ import {
   PhotoIcon,
   ArrowLeftIcon
 } from '@heroicons/react/24/outline'
+import AgeButton from '../AgeButton'
+import { useAutoSave, AutoSaveIndicator } from '../../hooks/useAutoSave.jsx'
+import ReadAloud from '../ReadAloud'
+import ShareButton from '../ShareButton'
 
 export default function PresidentialTimeMachine() {
   const [selectedPresident, setSelectedPresident] = useState('George Washington')
   const [storyGenerated, setStoryGenerated] = useState(false)
   const [uploadedDrawing, setUploadedDrawing] = useState(null)
+  const storyRef = useRef(null)
+
+  // Auto-save game state
+  const gameState = { selectedPresident, storyGenerated, uploadedDrawing }
+  const { saveStatus, lastSaved } = useAutoSave(
+    'presidential-time-machine',
+    gameState,
+    { useSupabase: false, gameId: 'presidential-time-machine' }
+  )
 
   const presidents = [
     { name: 'George Washington', year: '1789', era: '1700s' },
@@ -58,6 +71,36 @@ export default function PresidentialTimeMachine() {
       const reader = new FileReader()
       reader.onload = (e) => setUploadedDrawing(e.target.result)
       reader.readAsDataURL(file)
+    }
+  }
+
+  const handleSaveAsImage = async () => {
+    if (!storyRef.current) return
+
+    try {
+      // Dynamically import html2canvas
+      const html2canvas = (await import('html2canvas')).default
+
+      const canvas = await html2canvas(storyRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2, // Higher quality
+        logging: false,
+      })
+
+      // Convert to blob and download
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${selectedPresident.replace(/\s+/g, '-')}-time-machine-story.png`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+      })
+    } catch (error) {
+      console.error('Error saving image:', error)
+      alert('Failed to save image. Please try again.')
     }
   }
 
@@ -116,24 +159,37 @@ export default function PresidentialTimeMachine() {
             ))}
           </div>
 
-          <button
+          <AgeButton
             onClick={handleGenerate}
-            className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white py-4 px-8 rounded-xl font-bold text-lg shadow-lg transition-all transform hover:scale-105"
+            variant="primary"
+            className="w-full"
           >
             <div className="flex items-center justify-center gap-2">
               <ClockIcon className="w-6 h-6" />
               Start Time Machine
             </div>
-          </button>
+          </AgeButton>
+
+          {/* Auto-save indicator */}
+          <div className="mt-4 flex justify-center">
+            <AutoSaveIndicator status={saveStatus} lastSaved={lastSaved} />
+          </div>
         </div>
 
         {/* Generated Story */}
         {storyGenerated && (
           <div className="space-y-8 animate-fadeIn">
-            <div className="bg-white rounded-3xl shadow-xl border-2 border-pink-200 p-8">
-              <h2 className="text-3xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-600">
+            <div id="presidential-story-output" ref={storyRef} className="printable-story bg-white rounded-3xl shadow-xl border-2 border-pink-200 p-8">
+              <h2 className="text-3xl font-bold text-center mb-4 text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-600">
                 {selectedPresident} Arrives in 2026!
               </h2>
+
+              {/* Read Aloud Button */}
+              <div className="flex justify-center mb-8 no-print">
+                <ReadAloud
+                  text={`${selectedPresident} Arrives in 2026! WHOOSH! The time machine whirs to life and ${selectedPresident} steps out, looking around in amazement. "Where am I?" he asks. "This is America... but in the year 2026!" What Would Shock ${selectedPresident}: ${(facts[selectedPresident] || facts['George Washington']).join('. ')}. After seeing all these amazing changes, ${selectedPresident} smiled and said: "The America I helped build has grown beyond my wildest dreams. Though much has changed, I can see the spirit of freedom and innovation I believed in still burns bright!"`}
+                />
+              </div>
 
               <div className="prose prose-lg max-w-none mb-8">
                 <p className="text-gray-700 leading-relaxed">
@@ -206,38 +262,50 @@ export default function PresidentialTimeMachine() {
                     className="w-full rounded-2xl shadow-lg"
                   />
                   <div className="flex gap-4">
-                    <button className="flex-1 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white py-3 px-6 rounded-xl font-semibold">
+                    <AgeButton variant="primary" className="flex-1">
                       Submit to Gallery
-                    </button>
-                    <button
+                    </AgeButton>
+                    <AgeButton
                       onClick={() => setUploadedDrawing(null)}
-                      className="border-2 border-gray-300 hover:border-gray-400 text-gray-700 py-3 px-6 rounded-xl font-semibold"
+                      variant="secondary"
+                      className="flex-1"
                     >
                       Change Photo
-                    </button>
+                    </AgeButton>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
+            <div className="flex flex-col sm:flex-row gap-4 no-print">
+              <AgeButton
                 onClick={() => window.print()}
-                className="flex-1 bg-white border-2 border-pink-300 hover:border-pink-500 text-pink-600 py-4 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
+                variant="secondary"
+                className="flex-1 flex items-center justify-center gap-2"
               >
                 <PrinterIcon className="w-5 h-5" />
                 Print Story
-              </button>
-              <button className="flex-1 bg-white border-2 border-pink-300 hover:border-pink-500 text-pink-600 py-4 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all">
-                <PhotoIcon className="w-5 h-5" />
-                Save as Image
-              </button>
+              </AgeButton>
+              <div className="flex-1">
+                <ShareButton
+                  elementId="presidential-story-output"
+                  filename={`${selectedPresident.replace(/\s+/g, '-')}-time-machine.png`}
+                  title={`${selectedPresident} Arrives in 2026!`}
+                  text={`Check out my time machine story about ${selectedPresident}! Created with AI Family Night.`}
+                />
+              </div>
               <Link
-                to="/gallery"
-                className="flex-1 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white py-4 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
+                to="/dashboard"
+                className="flex-1"
               >
-                View Gallery
+                <AgeButton
+                  variant="primary"
+                  className="w-full flex items-center justify-center gap-2"
+                >
+                  <ArrowLeftIcon className="w-5 h-5" />
+                  Back to Games
+                </AgeButton>
               </Link>
             </div>
           </div>

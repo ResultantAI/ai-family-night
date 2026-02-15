@@ -2,7 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { MicrophoneIcon, StopIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 
-export default function VoiceInput({ value, onChange, placeholder, className }) {
+/**
+ * Voice-enabled textarea component
+ * Allows users to speak instead of type (great for young kids!)
+ */
+export default function VoiceTextarea({ value, onChange, placeholder, className, rows = 3 }) {
   const [isListening, setIsListening] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isSupported, setIsSupported] = useState(false)
@@ -34,7 +38,9 @@ export default function VoiceInput({ value, onChange, placeholder, className }) 
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript
         setIsProcessing(false)
-        onChange({ target: { value: value + ' ' + transcript } })
+        // Append to existing value with a space
+        const newValue = value ? value + ' ' + transcript : transcript
+        onChange({ target: { value: newValue } })
       }
 
       recognitionRef.current.onerror = (event) => {
@@ -57,7 +63,7 @@ export default function VoiceInput({ value, onChange, placeholder, className }) 
         recognitionRef.current.stop()
       }
     }
-  }, [])
+  }, [value])
 
   const dismissBrowserWarning = () => {
     localStorage.setItem('voice-browser-warning-dismissed', 'true')
@@ -147,18 +153,18 @@ export default function VoiceInput({ value, onChange, placeholder, className }) 
       )}
 
       <div className="relative">
-        <input
-          type="text"
+        <textarea
           value={value}
           onChange={onChange}
           placeholder={placeholder}
           className={className}
+          rows={rows}
         />
         {isSupported && (
           <button
             type="button"
             onClick={toggleListening}
-            className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all ${
+            className={`absolute right-3 top-3 p-2 rounded-full transition-all ${
               isListening
                 ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
@@ -213,56 +219,4 @@ export default function VoiceInput({ value, onChange, placeholder, className }) 
       )}
     </>
   )
-}
-
-// Hook version for textarea
-export function useVoiceInput() {
-  const [isListening, setIsListening] = useState(false)
-  const [isSupported, setIsSupported] = useState(false)
-  const recognitionRef = useRef(null)
-
-  useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (SpeechRecognition) {
-      setIsSupported(true)
-      recognitionRef.current = new SpeechRecognition()
-      recognitionRef.current.continuous = false
-      recognitionRef.current.interimResults = false
-      recognitionRef.current.lang = 'en-US'
-    }
-  }, [])
-
-  const startListening = (callback) => {
-    if (!recognitionRef.current) return
-
-    recognitionRef.current.onresult = (event) => {
-      const transcript = event.results[0][0].transcript
-      callback(transcript)
-    }
-
-    recognitionRef.current.onerror = (event) => {
-      console.error('Speech recognition error:', event.error)
-      setIsListening(false)
-    }
-
-    recognitionRef.current.onend = () => {
-      setIsListening(false)
-    }
-
-    try {
-      recognitionRef.current.start()
-      setIsListening(true)
-    } catch (error) {
-      console.error('Failed to start recognition:', error)
-    }
-  }
-
-  const stopListening = () => {
-    if (recognitionRef.current && isListening) {
-      recognitionRef.current.stop()
-      setIsListening(false)
-    }
-  }
-
-  return { isListening, isSupported, startListening, stopListening }
 }

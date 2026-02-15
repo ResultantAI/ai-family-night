@@ -7,3 +7,38 @@
 body {
   font-family: 'Inter', sans-serif;
 }
+
+/* Print styles - only show printable content */
+@media print {
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Show only printable content */
+  .printable-story,
+  .printable-story * {
+    visibility: visible;
+  }
+
+  /* Position printable content at top of page */
+  .printable-story {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  /* Hide elements that shouldn't print */
+  .no-print,
+  header,
+  button,
+  .print-hide {
+    display: none !important;
+  }
+
+  /* Remove backgrounds and borders for cleaner print */
+  .printable-story {
+    background: white !important;
+  }
+}

@@ -9,6 +9,7 @@ import {
   PlusIcon,
   TrashIcon
 } from '@heroicons/react/24/outline'
+import VoiceInput from '../VoiceInput'
 
 export default function RestaurantMenu() {
   const [restaurantName, setRestaurantName] = useState('')
@@ -125,14 +126,14 @@ export default function RestaurantMenu() {
               {/* Restaurant Name */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Restaurant Name
+                  Restaurant Name 🎤
                 </label>
-                <input
+                <VoiceInput
                   type="text"
                   value={restaurantName}
                   onChange={(e) => setRestaurantName(e.target.value)}
                   placeholder="The Tasty Treehouse"
-                  className="w-full px-4 py-3 border-2 border-yellow-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  className="w-full px-4 py-3 pr-12 border-2 border-yellow-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                 />
               </div>
 
@@ -166,32 +167,32 @@ export default function RestaurantMenu() {
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <input
+                      <VoiceInput
                         type="text"
                         value={currentItem.name}
                         onChange={(e) => setCurrentItem({ ...currentItem, name: e.target.value })}
-                        placeholder="Item name"
-                        className="w-full px-3 py-2 border-2 border-yellow-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+                        placeholder="Item name 🎤"
+                        className="w-full px-3 py-2 pr-12 border-2 border-yellow-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
                       />
                     </div>
                     <div>
-                      <input
+                      <VoiceInput
                         type="number"
                         step="0.01"
                         value={currentItem.price}
                         onChange={(e) => setCurrentItem({ ...currentItem, price: e.target.value })}
-                        placeholder="Price"
-                        className="w-full px-3 py-2 border-2 border-yellow-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+                        placeholder="Price 🎤"
+                        className="w-full px-3 py-2 pr-12 border-2 border-yellow-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
                       />
                     </div>
                   </div>
 
-                  <input
+                  <VoiceInput
                     type="text"
                     value={currentItem.description}
                     onChange={(e) => setCurrentItem({ ...currentItem, description: e.target.value })}
-                    placeholder="Description"
-                    className="w-full px-3 py-2 border-2 border-yellow-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+                    placeholder="Description 🎤"
+                    className="w-full px-3 py-2 pr-12 border-2 border-yellow-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
                   />
 
                   <select
