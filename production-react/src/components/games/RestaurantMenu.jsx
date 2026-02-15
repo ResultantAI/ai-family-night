@@ -39,6 +39,28 @@ export default function RestaurantMenu() {
     { id: 'drinks', name: 'Drinks', emoji: '🥤' }
   ]
 
+  // Food emoji library for visual enhancement
+  const foodEmojis = {
+    burger: '🍔', fries: '🍟', pizza: '🍕', hotdog: '🌭', sandwich: '🥪',
+    pasta: '🍝', spaghetti: '🍝', noodle: '🍜', ramen: '🍜',
+    taco: '🌮', burrito: '🌯', nachos: '🧀', quesadilla: '🫓', salsa: '🫔',
+    salad: '🥗', soup: '🍲', steak: '🥩', chicken: '🍗', fish: '🐟',
+    cake: '🍰', pie: '🥧', cookie: '🍪', donut: '🍩', icecream: '🍦',
+    coffee: '☕', tea: '🍵', soda: '🥤', juice: '🧃', milkshake: '🥤',
+    bread: '🍞', cheese: '🧀', egg: '🍳', bacon: '🥓',
+    rice: '🍚', beans: '🫘', corn: '🌽', potato: '🥔'
+  }
+
+  // Auto-detect emoji from food name
+  const getfoodEmoji = (itemName) => {
+    const name = itemName.toLowerCase()
+    for (const [key, emoji] of Object.entries(foodEmojis)) {
+      if (name.includes(key)) return emoji
+    }
+    // Default emojis by category
+    return '🍽️'
+  }
+
   const sampleItems = {
     american: [
       { name: 'Super Burger', description: 'Triple-stacked burger with all the fixings', price: '12.99', category: 'mains' },
@@ -254,8 +276,11 @@ export default function RestaurantMenu() {
                       </h3>
                       <div className="space-y-3">
                         {items.map(item => (
-                          <div key={item.id} className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 group hover:bg-yellow-100 transition-all">
-                            <div className="flex items-start justify-between">
+                          <div key={item.id} className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 group hover:bg-yellow-100 transition-all hover:shadow-md">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="text-3xl animate-bounce-subtle">
+                                {getfoodEmoji(item.name)}
+                              </div>
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                   <div className="font-bold text-gray-900">{item.name}</div>
@@ -323,14 +348,21 @@ export default function RestaurantMenu() {
 
                       <div className="space-y-6">
                         {items.map(item => (
-                          <div key={item.id} className="border-b border-gray-200 pb-4 last:border-0">
-                            <div className="flex items-start justify-between mb-2">
-                              <h4 className="text-2xl font-bold text-gray-900">{item.name}</h4>
-                              <span className="text-2xl font-bold text-amber-600">${item.price}</span>
+                          <div key={item.id} className="border-b border-gray-200 pb-4 last:border-0 hover:bg-yellow-50 p-4 rounded-xl transition-all group">
+                            <div className="flex items-start gap-4">
+                              <div className="text-5xl animate-float group-hover:scale-110 transition-transform">
+                                {getfoodEmoji(item.name)}
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between mb-2">
+                                  <h4 className="text-2xl font-bold text-gray-900">{item.name}</h4>
+                                  <span className="text-2xl font-bold text-amber-600">${item.price}</span>
+                                </div>
+                                {item.description && (
+                                  <p className="text-gray-600 italic">{item.description}</p>
+                                )}
+                              </div>
                             </div>
-                            {item.description && (
-                              <p className="text-gray-600 italic">{item.description}</p>
-                            )}
                           </div>
                         ))}
                       </div>
@@ -413,6 +445,29 @@ export default function RestaurantMenu() {
         }
         .animate-fadeIn {
           animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes bounce-subtle {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+        .animate-bounce-subtle {
+          animation: bounce-subtle 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          25% { transform: translateY(-5px) rotate(2deg); }
+          50% { transform: translateY(-8px) rotate(0deg); }
+          75% { transform: translateY(-5px) rotate(-2deg); }
+        }
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
         }
       `}</style>
     </div>
