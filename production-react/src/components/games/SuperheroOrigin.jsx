@@ -111,7 +111,8 @@ export default function SuperheroOrigin() {
       window.scrollTo({ top: 600, behavior: 'smooth' })
     } catch (err) {
       console.error('Error generating superhero:', err)
-      setError('Oops! Our AI had trouble creating your hero. Please try again!')
+      // Still generate a hero using fallback, but show a friendly message
+      setError('✨ Our AI is taking a break, so we created an awesome hero using our backup system! Feel free to try again for an AI-powered version.')
 
       // Fallback to template-based generation
       const hero = generateFallbackHero(selectedTraits, selectedPower)

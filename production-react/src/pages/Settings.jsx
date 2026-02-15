@@ -465,12 +465,12 @@ function BillingTab({ user }) {
 function ChildrenTab({ children, loading, onUpdate }) {
   const [showModal, setShowModal] = useState(false)
   const [editingChild, setEditingChild] = useState(null)
-  const [formData, setFormData] = useState({ name: '', age: '', interests: [] })
+  const [formData, setFormData] = useState({ name: '', age: '', gender: '', interests: [] })
   const [saving, setSaving] = useState(false)
 
   const handleAdd = () => {
     setEditingChild(null)
-    setFormData({ name: '', age: '', interests: [] })
+    setFormData({ name: '', age: '', gender: '', interests: [] })
     setShowModal(true)
   }
 
@@ -479,6 +479,7 @@ function ChildrenTab({ children, loading, onUpdate }) {
     setFormData({
       name: child.name,
       age: child.age.toString(),
+      gender: child.gender || '',
       interests: child.interests || []
     })
     setShowModal(true)
@@ -515,6 +516,7 @@ function ChildrenTab({ children, loading, onUpdate }) {
       const childData = {
         name: formData.name,
         age: parseInt(formData.age),
+        gender: formData.gender,
         interests: formData.interests
       }
 
@@ -670,6 +672,22 @@ function ChildrenTab({ children, loading, onUpdate }) {
                   {[3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map(age => (
                     <option key={age} value={age}>{age} years old</option>
                   ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Gender
+                </label>
+                <select
+                  value={formData.gender}
+                  onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="">Select gender (optional)</option>
+                  <option value="boy">Boy</option>
+                  <option value="girl">Girl</option>
+                  <option value="other">Other/Prefer not to say</option>
                 </select>
               </div>
 

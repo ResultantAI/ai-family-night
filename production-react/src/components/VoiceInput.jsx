@@ -34,7 +34,8 @@ export default function VoiceInput({ value, onChange, placeholder, className }) 
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript
         setIsProcessing(false)
-        onChange({ target: { value: value + ' ' + transcript } })
+        const newValue = (value || '') + ' ' + transcript
+        onChange(newValue.trim())
       }
 
       recognitionRef.current.onerror = (event) => {
@@ -150,7 +151,7 @@ export default function VoiceInput({ value, onChange, placeholder, className }) 
         <input
           type="text"
           value={value}
-          onChange={onChange}
+          onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           className={className}
         />

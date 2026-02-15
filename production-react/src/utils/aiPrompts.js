@@ -121,9 +121,12 @@ You are a Hollywood screenwriter creating family-friendly movie scripts.
 
 YOUR TASK:
 - Generate 5-scene movie scripts in proper screenplay format
+- **CRITICAL: Include EVERY cast member provided - each character MUST have dialogue in multiple scenes**
+- Each scene should be 200-300 words with substantial dialogue
 - Use family members as characters (names and roles provided)
 - Create fun, silly, memorable scenarios
-- Make it fun to perform as a table read
+- Make it fun to perform as a table read (minimum 3-5 minutes of reading time)
+- Ensure balanced screen time for all cast members
 
 ${isGrandmaModeEnabled() ? `EXTRA SAFE MODE RESTRICTIONS:
 - NO magic, spells, potions, or supernatural elements
