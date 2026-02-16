@@ -31,6 +31,7 @@ export default function MusicalMaestro() {
   const [selectedSong, setSelectedSong] = useState(savedState.selectedSong || '')
   const [customSongTitle, setCustomSongTitle] = useState(savedState.customSongTitle || '')
   const [customArtist, setCustomArtist] = useState(savedState.customArtist || '')
+  const [customLyrics, setCustomLyrics] = useState(savedState.customLyrics || '')
 
   const [isRecording, setIsRecording] = useState(false)
   const [hasRecording, setHasRecording] = useState(false)
@@ -49,32 +50,112 @@ export default function MusicalMaestro() {
   const timerIntervalRef = useRef(null)
 
   // Auto-save game state
-  const gameState = { singerName, songCategory, selectedSong, customSongTitle, customArtist }
+  const gameState = { singerName, songCategory, selectedSong, customSongTitle, customArtist, customLyrics }
   useAutoSave('musical-maestro-game', gameState, 1000)
 
   const songLibrary = {
     disney: [
-      { id: 'let-it-go', title: 'Let It Go', movie: 'Frozen' },
-      { id: 'how-far-ill-go', title: 'How Far I\'ll Go', movie: 'Moana' },
-      { id: 'into-the-unknown', title: 'Into the Unknown', movie: 'Frozen 2' },
-      { id: 'we-dont-talk-bruno', title: 'We Don\'t Talk About Bruno', movie: 'Encanto' },
-      { id: 'a-whole-new-world', title: 'A Whole New World', movie: 'Aladdin' },
-      { id: 'under-the-sea', title: 'Under the Sea', movie: 'The Little Mermaid' },
-      { id: 'circle-of-life', title: 'Circle of Life', movie: 'The Lion King' },
-      { id: 'part-of-your-world', title: 'Part of Your World', movie: 'The Little Mermaid' }
+      {
+        id: 'let-it-go',
+        title: 'Let It Go',
+        movie: 'Frozen',
+        lyrics: `Let it go, let it go\nCan't hold it back anymore\nLet it go, let it go\nTurn away and slam the door\n\nI don't care what they're going to say\nLet the storm rage on\nThe cold never bothered me anyway`
+      },
+      {
+        id: 'how-far-ill-go',
+        title: 'How Far I\'ll Go',
+        movie: 'Moana',
+        lyrics: `See the line where the sky meets the sea?\nIt calls me\nAnd no one knows\nHow far it goes\n\nIf the wind in my sail on the sea stays behind me\nOne day I'll know\nHow far I'll go`
+      },
+      {
+        id: 'into-the-unknown',
+        title: 'Into the Unknown',
+        movie: 'Frozen 2',
+        lyrics: `Into the unknown\nInto the unknown\nInto the unknown\n\nAre you out there?\nDo you know me?\nCan you feel me?\nCan you show me?`
+      },
+      {
+        id: 'we-dont-talk-bruno',
+        title: 'We Don\'t Talk About Bruno',
+        movie: 'Encanto',
+        lyrics: `We don't talk about Bruno, no, no, no\nWe don't talk about Bruno\n\nBut it was my wedding day\nIt was our wedding day\nWe were getting ready\nAnd there wasn't a cloud in the sky`
+      },
+      {
+        id: 'a-whole-new-world',
+        title: 'A Whole New World',
+        movie: 'Aladdin',
+        lyrics: `I can show you the world\nShining, shimmering, splendid\nTell me, princess\nNow when did you last let your heart decide?\n\nA whole new world\nA new fantastic point of view`
+      },
+      {
+        id: 'under-the-sea',
+        title: 'Under the Sea',
+        movie: 'The Little Mermaid',
+        lyrics: `Under the sea\nUnder the sea\nDarling it's better\nDown where it's wetter\nTake it from me\n\nUp on the shore they work all day\nOut in the sun they slave away`
+      },
+      {
+        id: 'circle-of-life',
+        title: 'Circle of Life',
+        movie: 'The Lion King',
+        lyrics: `From the day we arrive on the planet\nAnd blinking, step into the sun\nThere's more to see than can ever be seen\nMore to do than can ever be done\n\nIt's the circle of life\nAnd it moves us all`
+      },
+      {
+        id: 'part-of-your-world',
+        title: 'Part of Your World',
+        movie: 'The Little Mermaid',
+        lyrics: `Look at this stuff, isn't it neat?\nWouldn't you think my collection's complete?\nWouldn't you think I'm the girl\nThe girl who has everything?\n\nI wanna be where the people are`
+      }
     ],
     kpop: [
-      { id: 'dynamite', title: 'Dynamite', artist: 'BTS' },
-      { id: 'butter', title: 'Butter', artist: 'BTS' },
-      { id: 'how-you-like-that', title: 'How You Like That', artist: 'BLACKPINK' },
-      { id: 'pink-venom', title: 'Pink Venom', artist: 'BLACKPINK' },
-      { id: 'step-back', title: 'Step Back', artist: 'GOT the beat' },
-      { id: 'signal', title: 'Signal', artist: 'TWICE' },
-      { id: 'dalla-dalla', title: 'DALLA DALLA', artist: 'ITZY' },
-      { id: 'next-level', title: 'Next Level', artist: 'aespa' }
+      {
+        id: 'dynamite',
+        title: 'Dynamite',
+        artist: 'BTS',
+        lyrics: `'Cause I, I, I'm in the stars tonight\nSo watch me bring the fire and set the night alight\n\nShoes on, get up in the morn'\nCup of milk, let's rock and roll\nKing Kong, kick the drum\nRolling on like a Rolling Stone`
+      },
+      {
+        id: 'butter',
+        title: 'Butter',
+        artist: 'BTS',
+        lyrics: `Smooth like butter\nLike a criminal undercover\nGon' pop like trouble\nBreaking into your heart like that\n\nCool shade, stunner\nYeah, I owe it all to my mother`
+      },
+      {
+        id: 'how-you-like-that',
+        title: 'How You Like That',
+        artist: 'BLACKPINK',
+        lyrics: `How you like that?\nHow you like that?\n\nNow look at you, now look at me\nLook at you, now look at me\nLook at you, now look at me\nHow you like that?`
+      },
+      {
+        id: 'pink-venom',
+        title: 'Pink Venom',
+        artist: 'BLACKPINK',
+        lyrics: `Kick in the door, waving the coco\nPapillon, find it, I go\nThis that pink venom, this that pink venom\n\nOne by one, then two by two\nNow everyone everywhere is on my radar`
+      },
+      {
+        id: 'step-back',
+        title: 'Step Back',
+        artist: 'GOT the beat',
+        lyrics: `Step back, step back\nGotta go, gotta go\nStep back, step back\nNow you know, now you know\n\nI'm getting stronger, bolder\nCan't hold me back anymore`
+      },
+      {
+        id: 'signal',
+        title: 'Signal',
+        artist: 'TWICE',
+        lyrics: `Signal, signal\nI'm sending you a signal\nSignal, signal\nCan you feel my signal?\n\nI'm trying hard to let you know\nBut you don't seem to notice`
+      },
+      {
+        id: 'dalla-dalla',
+        title: 'DALLA DALLA',
+        artist: 'ITZY',
+        lyrics: `I'm different, you're different\nI'm different, you're different\nI'm different, dalla dalla\nI'm different, dalla dalla\n\nI wanna be me, me, me`
+      },
+      {
+        id: 'next-level',
+        title: 'Next Level',
+        artist: 'aespa',
+        lyrics: `I'm on the next level\nNext level\nNever gonna stop this\nNever gonna give up\n\nCome on, let's go\nTo the next level`
+      }
     ],
     other: [
-      { id: 'custom', title: 'My Own Song!', artist: 'Custom' }
+      { id: 'custom', title: 'My Own Song!', artist: 'Custom', lyrics: '' }
     ]
   }
 
@@ -307,6 +388,17 @@ export default function MusicalMaestro() {
     (songCategory !== 'other' && selectedSong)
   )
 
+  const getCurrentSongInfo = () => {
+    if (songCategory === 'other') {
+      return {
+        title: customSongTitle,
+        artist: customArtist,
+        lyrics: customLyrics
+      }
+    }
+    return songLibrary[songCategory]?.find(s => s.id === selectedSong)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50">
       {/* Header */}
@@ -418,6 +510,21 @@ export default function MusicalMaestro() {
                       className="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Lyrics (Optional)
+                    </label>
+                    <textarea
+                      value={customLyrics}
+                      onChange={(e) => setCustomLyrics(e.target.value)}
+                      placeholder="Paste the lyrics here to see them while you sing..."
+                      rows={8}
+                      className="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      💡 Tip: Paste the lyrics so you can read them karaoke-style while recording!
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <div>
@@ -445,6 +552,55 @@ export default function MusicalMaestro() {
                 </div>
               )}
             </div>
+
+            {/* Karaoke Lyrics Display */}
+            {canRecord && (() => {
+              const currentSong = songCategory === 'other'
+                ? { lyrics: customLyrics }
+                : songLibrary[songCategory]?.find(s => s.id === selectedSong)
+
+              const lyrics = currentSong?.lyrics || ''
+
+              if (!lyrics) return null
+
+              return (
+                <div className="bg-white rounded-3xl shadow-xl border-2 border-purple-200 p-8">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <MusicalNoteIcon className="w-7 h-7 text-purple-500" />
+                    Lyrics
+                  </h2>
+                  <div className={`bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-300 rounded-2xl p-8 ${
+                    isRecording ? 'ring-4 ring-purple-400 animate-pulse' : ''
+                  }`}>
+                    <div className="text-center space-y-3">
+                      {lyrics.split('\n').map((line, i) => (
+                        <div
+                          key={i}
+                          className={`text-lg font-medium transition-all ${
+                            isRecording
+                              ? 'text-purple-900'
+                              : 'text-gray-700'
+                          }`}
+                          style={{
+                            fontSize: isRecording ? '1.25rem' : '1.125rem',
+                            lineHeight: '1.75'
+                          }}
+                        >
+                          {line || '\u00A0'}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {isRecording && (
+                    <div className="mt-4 text-center">
+                      <p className="text-sm text-purple-600 font-semibold animate-bounce">
+                        🎤 Sing along!
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
 
             {/* Recording Section */}
             <div className="bg-white rounded-3xl shadow-xl border-2 border-purple-200 p-8">
@@ -679,6 +835,7 @@ export default function MusicalMaestro() {
                   setRecordingBlob(null)
                   setRecordingDuration(0)
                   setSelectedSong('')
+                  setCustomLyrics('')
                   window.scrollTo({ top: 0, behavior: 'smooth' })
                 }}
                 className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-4 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
