@@ -48,6 +48,8 @@ export default function MusicalMaestro() {
   const recordingStartTimeRef = useRef(null)
   const [recordingDuration, setRecordingDuration] = useState(0)
   const timerIntervalRef = useRef(null)
+  const lyricsRef = useRef(null)
+  const [currentLine, setCurrentLine] = useState(0)
 
   // Auto-save game state
   const gameState = { singerName, songCategory, selectedSong, customSongTitle, customArtist, customLyrics }
@@ -59,13 +61,13 @@ export default function MusicalMaestro() {
         id: 'let-it-go',
         title: 'Let It Go',
         movie: 'Frozen',
-        lyrics: `Let it go, let it go\nCan't hold it back anymore\nLet it go, let it go\nTurn away and slam the door\n\nI don't care what they're going to say\nLet the storm rage on\nThe cold never bothered me anyway`
+        lyrics: `The snow glows white on the mountain tonight\nNot a footprint to be seen\nA kingdom of isolation\nAnd it looks like I'm the queen\n\nThe wind is howling like this swirling storm inside\nCouldn't keep it in, heaven knows I tried\n\nDon't let them in, don't let them see\nBe the good girl you always have to be\nConceal, don't feel, don't let them know\nWell, now they know\n\nLet it go, let it go\nCan't hold it back anymore\nLet it go, let it go\nTurn away and slam the door\n\nI don't care what they're going to say\nLet the storm rage on\nThe cold never bothered me anyway\n\nIt's funny how some distance\nMakes everything seem small\nAnd the fears that once controlled me\nCan't get to me at all\n\nIt's time to see what I can do\nTo test the limits and break through\nNo right, no wrong, no rules for me\nI'm free\n\nLet it go, let it go\nI am one with the wind and sky\nLet it go, let it go\nYou'll never see me cry\n\nHere I stand and here I'll stay\nLet the storm rage on\n\nMy power flurries through the air into the ground\nMy soul is spiraling in frozen fractals all around\nAnd one thought crystallizes like an icy blast\nI'm never going back, the past is in the past\n\nLet it go, let it go\nAnd I'll rise like the break of dawn\nLet it go, let it go\nThat perfect girl is gone\n\nHere I stand in the light of day\nLet the storm rage on\nThe cold never bothered me anyway`
       },
       {
         id: 'how-far-ill-go',
         title: 'How Far I\'ll Go',
         movie: 'Moana',
-        lyrics: `See the line where the sky meets the sea?\nIt calls me\nAnd no one knows\nHow far it goes\n\nIf the wind in my sail on the sea stays behind me\nOne day I'll know\nHow far I'll go`
+        lyrics: `I've been staring at the edge of the water\nLong as I can remember\nNever really knowing why\nI wish I could be the perfect daughter\nBut I come back to the water\nNo matter how hard I try\n\nEvery turn I take, every trail I track\nEvery path I make, every road leads back\nTo the place I know where I cannot go\nWhere I long to be\n\nSee the line where the sky meets the sea?\nIt calls me\nAnd no one knows\nHow far it goes\n\nIf the wind in my sail on the sea stays behind me\nOne day I'll know\nIf I go there's just no telling how far I'll go\n\nI know everybody on this island\nSeems so happy on this island\nEverything is by design\nI know everybody on this island\nHas a role on this island\nSo maybe I can roll with mine\n\nI can lead with pride, I can make us strong\nI'll be satisfied if I play along\nBut the voice inside sings a different song\nWhat is wrong with me?\n\nSee the light as it shines on the sea?\nIt's blinding\nBut no one knows\nHow deep it goes\n\nAnd it seems like it's calling out to me\nSo come find me\nAnd let me know\nWhat's beyond that line, will I cross that line?\n\nThe line where the sky meets the sea?\nIt calls me\nAnd no one knows\nHow far it goes\n\nIf the wind in my sail on the sea stays behind me\nOne day I'll know\nHow far I'll go`
       },
       {
         id: 'into-the-unknown',
@@ -77,7 +79,7 @@ export default function MusicalMaestro() {
         id: 'we-dont-talk-bruno',
         title: 'We Don\'t Talk About Bruno',
         movie: 'Encanto',
-        lyrics: `We don't talk about Bruno, no, no, no\nWe don't talk about Bruno\n\nBut it was my wedding day\nIt was our wedding day\nWe were getting ready\nAnd there wasn't a cloud in the sky`
+        lyrics: `We don't talk about Bruno, no, no, no\nWe don't talk about Bruno\nBut\n\nIt was my wedding day\nIt was our wedding day\nWe were getting ready\nAnd there wasn't a cloud in the sky\nNo clouds allowed in the sky\n\nBruno walks in with a mischievous grin\nThunder!\nYou telling this story or am I?\nI'm sorry, mi vida, go on\n\nBruno says, "It looks like rain"\nWhy did he tell us?\nIn doing so, he floods my brain\nAbuela, get the umbrellas\nMarried in a hurricane\nWhat a joyous day but anyway\n\nWe don't talk about Bruno, no, no, no\nWe don't talk about Bruno\n\nHey, grew to live in fear of Bruno stuttering or stumbling\nI can always hear him sort of muttering and mumbling\nI associate him with the sound of falling sand, ch ch ch\nIt's a heavy lift with a gift so humbling\nAlways left Abuela and the family fumbling\nGrappling with prophecies they couldn't understand\nDo you understand?\n\nA seven-foot frame, rats along his back\nWhen he calls your name it all fades to black\nYeah, he sees your dreams and feasts on your screams\nHey\n\nWe don't talk about Bruno, no, no, no\nWe don't talk about Bruno\n\nHe told me my fish would die, the next day, dead\nNo, no\nHe told me I'd grow a gut and just like he said\nNo, no\nHe said that all my hair would disappear\nNow, look at my head\nNo, no\nYour fate is sealed when your prophecy is read\n\nHe told me that the life of my dreams\nWould be promised, and someday be mine\nHe told me that my power would grow\nLike the grapes that thrive on the vine\n\nI'm fine, and I'm fine, and I'm fine, I'm fine\nHe's here\n\nDon't talk about Bruno, no\nWhy did I talk about Bruno?\nNot a word about Bruno\nI never should have brought up Bruno`
       },
       {
         id: 'a-whole-new-world',
@@ -109,13 +111,13 @@ export default function MusicalMaestro() {
         id: 'dynamite',
         title: 'Dynamite',
         artist: 'BTS',
-        lyrics: `'Cause I, I, I'm in the stars tonight\nSo watch me bring the fire and set the night alight\n\nShoes on, get up in the morn'\nCup of milk, let's rock and roll\nKing Kong, kick the drum\nRolling on like a Rolling Stone`
+        lyrics: `'Cause I, I, I'm in the stars tonight\nSo watch me bring the fire and set the night alight\n\nShoes on, get up in the morn'\nCup of milk, let's rock and roll\nKing Kong, kick the drum\nRolling on like a Rolling Stone\n\nSing song when I'm walking home\nJump up to the top, LeBron\nDing-dong, call me on my phone\nIce tea and a game of ping pong\n\nThis is getting heavy\nCan you hear the bass boom? I'm ready\nLife is sweet as honey\nYeah, this beat cha-ching like money\n\nDisco overload, I'm into that, I'm good to go\nI'm diamond, you know I glow up\nHey, so let's go\n\n'Cause I, I, I'm in the stars tonight\nSo watch me bring the fire and set the night alight\nShining through the city with a little funk and soul\nSo I'ma light it up like dynamite, woah\n\nBring a friend, join the crowd, whoever wanna come along\nWord up, talk the talk, just move like we off the wall\nDay or night, the sky's alight, so we dance to the break of dawn\nLadies and gentlemen, I got the medicine so you should keep ya eyes on the ball\n\nThis is getting heavy, can you hear the bass boom? I'm ready\nLife is sweet as honey, yeah, this beat cha-ching like money\nDisco overload, I'm into that, I'm good to go\nI'm diamond, you know I glow up\n\nLet's go\n\n'Cause I, I, I'm in the stars tonight\nSo watch me bring the fire and set the night alight\nShining through the city with a little funk and soul\nSo I'ma light it up like dynamite, woah\n\nDy-na-na-na, na-na-na-na-na, na-na-na, life is dynamite\nDy-na-na-na, na-na-na-na-na, na-na-na, life is dynamite\nShining through the city with a little funk and soul\nSo I'ma light it up like dynamite, woah\n\nDy-na-na-na, na-na, na-na, ayy\nDy-na-na-na, na-na, na-na, ayy\nDy-na-na-na, na-na, na-na, ayy\nLight it up like dynamite\n\n'Cause I, I, I'm in the stars tonight\nSo watch me bring the fire and set the night alight\nShining through the city with a little funk and soul\nSo I'ma light it up like dynamite\n\n'Cause I, I, I'm in the stars tonight\nSo watch me bring the fire and set the night alight\nShining through the city with a little funk and soul\nSo I'ma light it up like dynamite, woah`
       },
       {
         id: 'butter',
         title: 'Butter',
         artist: 'BTS',
-        lyrics: `Smooth like butter\nLike a criminal undercover\nGon' pop like trouble\nBreaking into your heart like that\n\nCool shade, stunner\nYeah, I owe it all to my mother`
+        lyrics: `Smooth like butter\nLike a criminal undercover\nGon' pop like trouble\nBreaking into your heart like that (ooh)\n\nCool shade, stunner\nYeah, I owe it all to my mother\nHot like summer\nYeah, I'm making you sweat like that\n\nBreak it down\n\nOh, when I look in the mirror\nI'll melt your heart into two\nI got that superstar glow, so (ooh)\n\nDo the boogie, like\nSide step, right-left, to my beat\nHigh like the moon, rock with me, baby\nKnow that I got that heat\n\nLet me show you 'cause talk is cheap\nSide step, right-left, to my beat\nGet it, let it roll\n\nSmooth like butter\nPull you in like no other\nDon't need no Usher\nTo remind me you got it bad\n\nAin't no other\nThat can sweep you up like a robber\nStraight up, I got ya\nMaking you fall like that\n\nBreak it down\n\nOh, when I look in the mirror\nI'll melt your heart into two\nI got that superstar glow, so (ooh)\n\nDo the boogie, like\nSide step, right-left, to my beat\nHigh like the moon, rock with me, baby\nKnow that I got that heat\n\nLet me show you 'cause talk is cheap\nSide step, right-left, to my beat\nGet it, let it roll\n\nGet it, let it roll\nGet it, let it roll\n\nSmooth like butter\nLike a criminal undercover\nGon' pop like trouble\nBreaking into your heart like that\n\nCool shade, stunner\nYeah, I owe it all to my mother\nHot like summer\nYeah, I'm making you sweat like that\n\nBreak it down\n\nDon't need no Usher\nTo remind me you got it bad\nStraight up, I got ya\nMaking you fall like that`
       },
       {
         id: 'how-you-like-that',
@@ -214,10 +216,25 @@ export default function MusicalMaestro() {
       setIsRecording(true)
       recordingStartTimeRef.current = Date.now()
 
-      // Start timer
+      // Start timer and lyrics scroll
+      const currentSong = getCurrentSongInfo()
+      const totalLines = currentSong?.lyrics?.split('\n').length || 0
+
       timerIntervalRef.current = setInterval(() => {
         const elapsed = Math.floor((Date.now() - recordingStartTimeRef.current) / 1000)
         setRecordingDuration(elapsed)
+
+        // Auto-scroll lyrics (roughly 3 seconds per line)
+        if (totalLines > 0) {
+          const newLine = Math.min(Math.floor(elapsed / 3), totalLines - 1)
+          setCurrentLine(newLine)
+
+          // Scroll the lyrics container
+          if (lyricsRef.current) {
+            const lineHeight = 56 // approximate height of each line
+            lyricsRef.current.scrollTop = newLine * lineHeight - 100 // offset to keep current line visible
+          }
+        }
       }, 1000)
 
     } catch (error) {
@@ -230,6 +247,7 @@ export default function MusicalMaestro() {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop()
       setIsRecording(false)
+      setCurrentLine(0)
     }
   }
 
@@ -567,23 +585,35 @@ export default function MusicalMaestro() {
                 <div className="bg-white rounded-3xl shadow-xl border-2 border-purple-200 p-8">
                   <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                     <MusicalNoteIcon className="w-7 h-7 text-purple-500" />
-                    Lyrics
+                    Lyrics {isRecording && <span className="text-sm text-purple-600 font-normal ml-2">(Auto-scrolling)</span>}
                   </h2>
-                  <div className={`bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-300 rounded-2xl p-8 ${
-                    isRecording ? 'ring-4 ring-purple-400 animate-pulse' : ''
+                  <div className={`bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-300 rounded-2xl overflow-hidden ${
+                    isRecording ? 'ring-4 ring-purple-400' : ''
                   }`}>
-                    <div className="text-center space-y-3">
+                    <div
+                      ref={lyricsRef}
+                      className="p-8 text-center space-y-3 max-h-96 overflow-y-auto scroll-smooth"
+                      style={{ scrollBehavior: 'smooth' }}
+                    >
                       {lyrics.split('\n').map((line, i) => (
                         <div
                           key={i}
-                          className={`text-lg font-medium transition-all ${
-                            isRecording
-                              ? 'text-purple-900'
+                          className={`text-lg font-semibold transition-all duration-300 py-2 px-4 rounded-xl ${
+                            isRecording && i === currentLine
+                              ? 'bg-gradient-to-r from-yellow-300 via-amber-300 to-yellow-300 text-gray-900 scale-110 shadow-lg'
+                              : isRecording && i < currentLine
+                              ? 'text-gray-400 opacity-50'
+                              : isRecording && i > currentLine
+                              ? 'text-purple-900 opacity-70'
                               : 'text-gray-700'
                           }`}
                           style={{
-                            fontSize: isRecording ? '1.25rem' : '1.125rem',
-                            lineHeight: '1.75'
+                            fontSize: isRecording && i === currentLine ? '1.5rem' : '1.125rem',
+                            lineHeight: '1.75',
+                            minHeight: '3.5rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
                           }}
                         >
                           {line || '\u00A0'}
@@ -594,7 +624,7 @@ export default function MusicalMaestro() {
                   {isRecording && (
                     <div className="mt-4 text-center">
                       <p className="text-sm text-purple-600 font-semibold animate-bounce">
-                        🎤 Sing along!
+                        🎤 Sing along with the highlighted line!
                       </p>
                     </div>
                   )}
