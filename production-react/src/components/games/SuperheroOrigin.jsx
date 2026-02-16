@@ -286,13 +286,14 @@ export default function SuperheroOrigin() {
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Child's Name 🎤 <span className="text-xs text-gray-500">(Click mic to speak)</span>
+                  Child's Name
                 </label>
-                <VoiceInput
+                <input
+                  type="text"
                   value={childName}
                   onChange={(e) => setChildName(e.target.value)}
                   placeholder="Emma"
-                  className="w-full px-4 py-3 pr-12 border-2 border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border-2 border-orange-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
               </div>
 

@@ -18,6 +18,7 @@ import Onboarding from './pages/Onboarding'
 import Calendar from './pages/Calendar'
 import Games from './pages/Games'
 import Upgrade from './pages/Upgrade'
+import Referrals from './pages/Referrals'
 import LoveStoryComic from './components/games/LoveStoryComic'
 import SuperheroOrigin from './components/games/SuperheroOrigin'
 import TreehouseDesigner from './components/games/TreehouseDesigner'
@@ -27,6 +28,7 @@ import FamilyMovieMagic from './components/games/FamilyMovieMagic'
 import NoisyStorybook from './components/games/NoisyStorybook'
 import AIRoastBattle from './components/games/AIRoastBattle'
 import PresidentialTimeMachine from './components/games/PresidentialTimeMachine'
+import MusicalMaestro from './components/games/MusicalMaestro'
 import { hasGameAccess, getUserTier } from './config/stripe'
 import PremiumGate from './components/PremiumGate'
 import './index.css'
@@ -64,6 +66,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/calendar" element={<Calendar />} />
         <Route path="/games" element={<Games />} />
         <Route path="/upgrade" element={<Upgrade />} />
+        <Route path="/referrals" element={<Referrals />} />
 
         {/* Free Games */}
         <Route path="/games/presidential-time-machine" element={<PresidentialTimeMachine />} />
@@ -96,6 +99,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/games/restaurant-menu" element={
           <PremiumGameWrapper gameId="restaurant-menu" gameName="Restaurant Menu">
             <RestaurantMenu />
+          </PremiumGameWrapper>
+        } />
+        <Route path="/games/musical-maestro" element={
+          <PremiumGameWrapper gameId="musical-maestro" gameName="Musical Maestro">
+            <MusicalMaestro />
           </PremiumGameWrapper>
         } />
       </Routes>

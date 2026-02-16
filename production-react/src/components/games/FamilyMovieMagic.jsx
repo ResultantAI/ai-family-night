@@ -560,13 +560,14 @@ export default function FamilyMovieMagic() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        Name 🎤
+                        Name
                       </label>
-                      <VoiceInput
+                      <input
+                        type="text"
                         value={member.name}
                         onChange={(e) => updateCast(index, 'name', e.target.value)}
                         placeholder="Family member"
-                        className="w-full px-3 py-2 pr-10 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       />
                     </div>
                     <div>

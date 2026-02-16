@@ -135,9 +135,9 @@ export default function LoveStoryComic() {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      What happens in this panel? 🎤 <span className="text-xs text-gray-500">(Click mic to speak)</span>
+                      What happens in this panel?
                     </label>
-                    <VoiceTextarea
+                    <textarea
                       value={panel.text}
                       onChange={(e) => updatePanel(index, 'text', e.target.value)}
                       placeholder={
@@ -146,7 +146,7 @@ export default function LoveStoryComic() {
                         index === 2 ? 'She added extra chocolate chips!' :
                         'We all hug and say we love each other'
                       }
-                      className="w-full px-4 py-3 pr-12 border-2 border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none bg-white"
+                      className="w-full px-4 py-3 border-2 border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none bg-white"
                       rows={3}
                     />
                   </div>
@@ -193,28 +193,84 @@ export default function LoveStoryComic() {
                 {panels.map((panel, index) => (
                   <div
                     key={index}
-                    className="bg-gradient-to-br from-pink-50 to-rose-50 border-4 border-pink-300 rounded-2xl p-6 shadow-lg"
+                    className="bg-gradient-to-br from-pink-50 to-rose-50 border-4 border-pink-300 rounded-2xl p-6 shadow-lg comic-panel"
+                    style={{ pageBreakInside: 'avoid' }}
                   >
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
                         {index + 1}
                       </div>
                       <div className="text-sm font-semibold text-gray-600">
-                        Panel {index + 1}
+                        {index === 0 && 'The Setup'}
+                        {index === 1 && 'The Action'}
+                        {index === 2 && 'The Twist'}
+                        {index === 3 && 'The Ending'}
                       </div>
                     </div>
 
-                    <div className="bg-white rounded-xl p-8 mb-4 min-h-[200px] flex items-center justify-center border-2 border-pink-200">
-                      <div className="text-center">
-                        <div className="text-7xl mb-4">{panel.emoji}</div>
-                        <div className="text-gray-700 font-medium leading-relaxed">
-                          {panel.text}
-                        </div>
+                    {/* Enhanced Emoji Illustration */}
+                    <div className="bg-white rounded-xl p-8 mb-4 min-h-[240px] flex items-center justify-center border-2 border-pink-200 relative overflow-hidden">
+                      <div
+                        className="text-9xl transform transition-transform hover:scale-110 cursor-pointer"
+                        style={{
+                          textShadow: '4px 4px 0px rgba(236, 72, 153, 0.3)',
+                          filter: 'drop-shadow(0 10px 8px rgb(0 0 0 / 0.04))',
+                          animation: `float-${index} ${2 + index * 0.5}s ease-in-out infinite`
+                        }}
+                      >
+                        {panel.emoji}
+                      </div>
+                    </div>
+
+                    {/* Speech Bubble */}
+                    <div className="bg-white rounded-2xl border-3 border-pink-300 p-4 relative">
+                      <div
+                        className="absolute -top-3 left-8 w-6 h-6 bg-white border-l-3 border-t-3 border-pink-300 transform rotate-45"
+                        style={{ borderWidth: '3px 0 0 3px' }}
+                      />
+                      <div className="text-gray-900 font-medium text-center relative z-10 leading-relaxed">
+                        {panel.text}
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
+
+              {/* CSS Animations - Add to component */}
+              <style jsx>{`
+                @keyframes float-0 {
+                  0%, 100% { transform: translateY(0px); }
+                  50% { transform: translateY(-10px); }
+                }
+                @keyframes float-1 {
+                  0%, 100% { transform: translateY(0px); }
+                  50% { transform: translateY(-12px); }
+                }
+                @keyframes float-2 {
+                  0%, 100% { transform: translateY(0px); }
+                  50% { transform: translateY(-8px); }
+                }
+                @keyframes float-3 {
+                  0%, 100% { transform: translateY(0px); }
+                  50% { transform: translateY(-15px); }
+                }
+
+                @media print {
+                  .no-print {
+                    display: none !important;
+                  }
+                  .comic-panel {
+                    page-break-inside: avoid;
+                    page-break-after: always;
+                  }
+                  header {
+                    display: none !important;
+                  }
+                  @page {
+                    margin: 1cm;
+                  }
+                }
+              `}</style>
 
               <div className="bg-gradient-to-r from-pink-100 to-rose-100 border-2 border-pink-300 rounded-2xl p-6 text-center">
                 <div className="text-6xl mb-4">❤️</div>

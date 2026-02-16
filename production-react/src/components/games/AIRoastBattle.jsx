@@ -41,12 +41,14 @@ export default function AIRoastBattle() {
   const [maxRounds] = useState(5)
 
   const [playerInput, setPlayerInput] = useState('')
+  const [interimInput, setInterimInput] = useState('') // Show what user is saying in real-time
   const [isListening, setIsListening] = useState(false)
   const [isAIThinking, setIsAIThinking] = useState(false)
   const [isAISpeaking, setIsAISpeaking] = useState(false)
   const [aiResponse, setAIResponse] = useState('')
   const [burnScore, setBurnScore] = useState(null)
   const [autoListen, setAutoListen] = useState(true) // Auto-start listening after AI speaks
+  const [showConfirm, setShowConfirm] = useState(false) // Show confirmation after user speaks
 
   const [playerScore, setPlayerScore] = useState(0)
   const [aiScore, setAIScore] = useState(0)
@@ -58,35 +60,155 @@ export default function AIRoastBattle() {
 
   const recognitionRef = useRef(null)
   const speechSynthesisRef = useRef(null)
+  const currentAudioRef = useRef(null) // Track current playing audio to prevent overlaps
+  const isProcessingRef = useRef(false) // Track if AI is currently thinking or speaking
+  const silenceTimeoutRef = useRef(null) // Track silence after user stops speaking
+  const audioContextRef = useRef(null) // For boxing bell sound effect
 
   // Initialize speech recognition
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition()
-      recognitionRef.current.continuous = false
-      recognitionRef.current.interimResults = false
+      recognitionRef.current.continuous = true // Keep listening for complete thought
+      recognitionRef.current.interimResults = true // Show what user is saying in real-time
       recognitionRef.current.lang = 'en-US'
 
       recognitionRef.current.onresult = (event) => {
-        const transcript = event.results[0][0].transcript
-        setPlayerInput(transcript)
-        setIsListening(false)
-        // Automatically submit the roast
-        handleSubmitRoast(transcript)
+        // CRITICAL FIX: Only process if AI is not currently working
+        if (isProcessingRef.current) {
+          console.warn('Ignoring voice input - AI is still processing')
+          return
+        }
+
+        let interimTranscript = ''
+        let finalTranscript = ''
+
+        // Build complete transcript from all results
+        for (let i = 0; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript + ' '
+          } else {
+            interimTranscript += transcript
+          }
+        }
+
+        // Show what user is saying in real-time (interim + final)
+        const displayText = (finalTranscript + interimTranscript).trim()
+        if (displayText) {
+          setPlayerInput(displayText)
+        }
+
+        // If we got a final result, start silence countdown
+        if (finalTranscript.trim()) {
+          // Clear any existing timeout
+          if (silenceTimeoutRef.current) {
+            clearTimeout(silenceTimeoutRef.current)
+          }
+
+          // Wait 2 seconds of silence, then submit
+          silenceTimeoutRef.current = setTimeout(() => {
+            const finalText = (finalTranscript + interimTranscript).trim()
+            if (finalText && recognitionRef.current) {
+              try {
+                recognitionRef.current.stop()
+              } catch (e) {
+                console.warn('Error stopping recognition:', e)
+              }
+              setIsListening(false)
+              setInterimInput('')
+              handleSubmitRoast(finalText)
+            }
+          }, 2000) // 2 second silence before submitting
+        }
       }
 
       recognitionRef.current.onerror = (event) => {
         console.error('Speech recognition error:', event.error)
         setIsListening(false)
+        setInterimInput('')
+        if (silenceTimeoutRef.current) {
+          clearTimeout(silenceTimeoutRef.current)
+        }
         setError('Microphone error. Try typing instead!')
       }
 
       recognitionRef.current.onend = () => {
         setIsListening(false)
+        setInterimInput('')
+        if (silenceTimeoutRef.current) {
+          clearTimeout(silenceTimeoutRef.current)
+        }
+      }
+    }
+
+    // Cleanup: Stop all audio when component unmounts
+    return () => {
+      if (silenceTimeoutRef.current) {
+        clearTimeout(silenceTimeoutRef.current)
+      }
+      if (currentAudioRef.current) {
+        try {
+          currentAudioRef.current.pause()
+          currentAudioRef.current.currentTime = 0
+        } catch (err) {
+          console.warn('Cleanup audio error:', err)
+        }
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+      }
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop()
+        } catch (err) {
+          console.warn('Cleanup recognition error:', err)
+        }
       }
     }
   }, [])
+
+  // Play boxing bell sound effect
+  const playBell = () => {
+    try {
+      // Initialize AudioContext if not already created
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)()
+      }
+
+      const ctx = audioContextRef.current
+      const now = ctx.currentTime
+
+      // Create oscillator for bell sound (two tones for realistic bell)
+      const osc1 = ctx.createOscillator()
+      const osc2 = ctx.createOscillator()
+      const gainNode = ctx.createGain()
+
+      // Bell frequencies (metallic sound)
+      osc1.frequency.value = 1200 // High tone
+      osc2.frequency.value = 1800 // Higher harmonic
+
+      // Connect oscillators to gain
+      osc1.connect(gainNode)
+      osc2.connect(gainNode)
+      gainNode.connect(ctx.destination)
+
+      // Bell envelope (quick attack, long decay)
+      gainNode.gain.setValueAtTime(0.3, now)
+      gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.8)
+
+      // Play the bell
+      osc1.start(now)
+      osc2.start(now)
+      osc1.stop(now + 0.8)
+      osc2.stop(now + 0.8)
+
+      console.log('🔔 Boxing bell!')
+    } catch (err) {
+      console.warn('Could not play bell sound:', err)
+    }
+  }
 
   const startGame = () => {
     if (!playerName.trim()) {
@@ -95,7 +217,8 @@ export default function AIRoastBattle() {
     }
     setGameStarted(true)
     setError(null)
-    // Start listening immediately when game starts
+
+    // Start listening immediately when game starts (will play bell)
     setTimeout(() => {
       startListening()
     }, 1000) // Give user 1 second to get ready
@@ -123,6 +246,32 @@ export default function AIRoastBattle() {
   }
 
   const speakText = async (text) => {
+    // CRITICAL FIX: Stop any currently playing audio to prevent overlaps
+    if (currentAudioRef.current) {
+      try {
+        currentAudioRef.current.pause()
+        currentAudioRef.current.currentTime = 0
+        currentAudioRef.current = null
+      } catch (err) {
+        console.warn('Error stopping previous audio:', err)
+      }
+    }
+
+    // Always cancel browser speech synthesis first
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+    }
+
+    // CRITICAL FIX: Stop voice recognition to prevent microphone from hearing AI voice
+    if (recognitionRef.current && isListening) {
+      try {
+        recognitionRef.current.stop()
+        setIsListening(false)
+      } catch (err) {
+        console.warn('Error stopping recognition before speaking:', err)
+      }
+    }
+
     setIsAISpeaking(true)
 
     // Try ElevenLabs first for better quality
@@ -146,13 +295,37 @@ export default function AIRoastBattle() {
         const audioUrl = URL.createObjectURL(audioBlob)
         const audio = new Audio(audioUrl)
 
+        // Store reference to current audio
+        currentAudioRef.current = audio
+
         await new Promise((resolve) => {
           audio.onended = () => {
             URL.revokeObjectURL(audioUrl)
+            currentAudioRef.current = null
             setIsAISpeaking(false)
+            // CRITICAL FIX: Mark processing as complete
+            isProcessingRef.current = false
             resolve()
           }
-          audio.play()
+
+          audio.onerror = () => {
+            URL.revokeObjectURL(audioUrl)
+            currentAudioRef.current = null
+            setIsAISpeaking(false)
+            // CRITICAL FIX: Mark processing as complete
+            isProcessingRef.current = false
+            resolve()
+          }
+
+          audio.play().catch((err) => {
+            console.warn('Audio play failed:', err)
+            URL.revokeObjectURL(audioUrl)
+            currentAudioRef.current = null
+            setIsAISpeaking(false)
+            // CRITICAL FIX: Mark processing as complete
+            isProcessingRef.current = false
+            resolve()
+          })
         })
 
         // Auto-start listening for next round if enabled
@@ -169,7 +342,11 @@ export default function AIRoastBattle() {
 
     // Fallback to browser TTS
     if ('speechSynthesis' in window) {
+      // Cancel again to be extra safe
       window.speechSynthesis.cancel()
+
+      // Small delay to ensure cancellation completes
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       const utterance = new SpeechSynthesisUtterance(text)
       utterance.rate = 1.1
@@ -188,6 +365,8 @@ export default function AIRoastBattle() {
 
       utterance.onend = () => {
         setIsAISpeaking(false)
+        // CRITICAL FIX: Mark processing as complete
+        isProcessingRef.current = false
         // Auto-start listening for next round if enabled
         if (autoListen && !gameOver) {
           setTimeout(() => {
@@ -196,7 +375,18 @@ export default function AIRoastBattle() {
         }
       }
 
+      utterance.onerror = () => {
+        setIsAISpeaking(false)
+        // CRITICAL FIX: Mark processing as complete
+        isProcessingRef.current = false
+      }
+
       window.speechSynthesis.speak(utterance)
+    } else {
+      // No speech synthesis available
+      setIsAISpeaking(false)
+      // CRITICAL FIX: Mark processing as complete
+      isProcessingRef.current = false
     }
   }
 
@@ -208,6 +398,18 @@ export default function AIRoastBattle() {
 
     if (!isListening && !isAISpeaking && !isAIThinking) {
       try {
+        // Play boxing bell at the start of each round (including round 1!)
+        if (gameStarted) {
+          playBell()
+        }
+
+        // Clear previous input when starting new listening session
+        setPlayerInput('')
+        setInterimInput('')
+        if (silenceTimeoutRef.current) {
+          clearTimeout(silenceTimeoutRef.current)
+        }
+
         recognitionRef.current.start()
         setIsListening(true)
         setError(null)
@@ -226,7 +428,26 @@ export default function AIRoastBattle() {
       return
     }
 
+    // CRITICAL FIX: Prevent multiple simultaneous submissions
+    if (isProcessingRef.current) {
+      console.warn('AI is already processing, ignoring duplicate submission')
+      return
+    }
+
+    // CRITICAL FIX: Stop voice recognition immediately to prevent it from hearing the AI
+    if (recognitionRef.current && isListening) {
+      try {
+        recognitionRef.current.stop()
+        setIsListening(false)
+      } catch (err) {
+        console.warn('Error stopping recognition:', err)
+      }
+    }
+
     setPlayerInput(input) // Update display
+
+    // Mark as processing
+    isProcessingRef.current = true
 
     setIsAIThinking(true)
     setError(null)
@@ -249,14 +470,38 @@ export default function AIRoastBattle() {
       const result = await response.json()
 
       if (!result.success) {
-        // Fallback roast
+        // Fallback roast - use backup jokes (no error needed, game continues smoothly)
         const fallbackResponse = getFallbackResponse(gameMode)
+        const fallbackScore = Math.floor(Math.random() * 5) + 3 // Random 3-7
         setAIResponse(fallbackResponse)
-        setBurnScore(Math.floor(Math.random() * 5) + 3) // Random 3-7
-        setError(`AI unavailable. Using backup roast. (${result.error})`)
+        setBurnScore(fallbackScore)
 
         // Speak the fallback roast too!
         speakText(fallbackResponse)
+
+        // Update scores
+        const playerRoundScore = Math.floor(Math.random() * 10) + 1
+        setPlayerScore(prev => prev + playerRoundScore)
+        setAIScore(prev => prev + fallbackScore)
+
+        // Add to history
+        setHistory(prev => [...prev, {
+          round,
+          player: input,
+          playerScore: playerRoundScore,
+          ai: fallbackResponse,
+          aiScore: fallbackScore
+        }])
+
+        // Check if game over
+        if (round >= maxRounds) {
+          setGameOver(true)
+          const finalPlayerScore = playerScore + playerRoundScore
+          const finalAIScore = aiScore + fallbackScore
+          setWinner(finalPlayerScore > finalAIScore ? 'player' : 'ai')
+        } else {
+          setRound(prev => prev + 1)
+        }
       } else {
         // Parse response and score
         const { roast, score } = parseAIResponse(result.content)
@@ -295,10 +540,40 @@ export default function AIRoastBattle() {
 
     } catch (error) {
       console.error('Error in roast battle:', error)
-      setError(`Something went wrong: ${error.message}`)
+      // Use fallback response and CONTINUE the game
       const fallbackResponse = getFallbackResponse(gameMode)
       setAIResponse(fallbackResponse)
-      setBurnScore(5)
+      const score = Math.floor(Math.random() * 5) + 4 // 4-8
+      setBurnScore(score)
+
+      // Speak the roast
+      speakText(fallbackResponse)
+
+      // Update scores
+      const playerRoundScore = Math.floor(Math.random() * 10) + 1
+      setPlayerScore(prev => prev + playerRoundScore)
+      setAIScore(prev => prev + score)
+
+      // Add to history
+      setHistory(prev => [...prev, {
+        round,
+        player: playerInput,
+        playerScore: playerRoundScore,
+        ai: fallbackResponse,
+        aiScore: score
+      }])
+
+      // Check if game over
+      if (round >= maxRounds) {
+        setGameOver(true)
+        const finalPlayerScore = playerScore + playerRoundScore
+        const finalAIScore = aiScore + score
+        setWinner(finalPlayerScore > finalAIScore ? 'player' : 'ai')
+      } else {
+        setRound(prev => prev + 1)
+      }
+
+      setPlayerInput('')
     } finally {
       setIsAIThinking(false)
     }
@@ -324,12 +599,14 @@ export default function AIRoastBattle() {
   }
 
   const parseAIResponse = (text) => {
-    // Look for BURN METER score
-    const scoreMatch = text.match(/BURN METER:\s*(\d+)/i)
+    // Look for BURN METER or GROAN METER score
+    const burnMatch = text.match(/BURN METER:\s*(\d+)/i)
+    const groanMatch = text.match(/GROAN METER:\s*(\d+)/i)
+    const scoreMatch = burnMatch || groanMatch
     const score = scoreMatch ? parseInt(scoreMatch[1]) : Math.floor(Math.random() * 5) + 4
 
-    // Remove the burn meter line from the roast
-    const roast = text.replace(/BURN METER:.*$/im, '').trim()
+    // Remove the meter line from the response
+    const roast = text.replace(/(BURN|GROAN) METER:.*$/im, '').trim()
 
     return { roast, score }
   }
@@ -599,26 +876,42 @@ export default function AIRoastBattle() {
 
               {/* AI Response */}
               {aiResponse && (
-                <div className="bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200 rounded-xl p-6 mb-4">
+                <div className={`border-2 rounded-xl p-6 mb-4 ${
+                  gameMode === 'dad-jokes'
+                    ? 'bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200'
+                    : 'bg-gradient-to-br from-red-50 to-pink-50 border-red-200'
+                }`}>
                   <div className="flex items-start gap-3 mb-3">
-                    <div className="p-2 bg-red-500 rounded-full">
+                    <div className={`p-2 rounded-full ${
+                      gameMode === 'dad-jokes' ? 'bg-blue-500' : 'bg-red-500'
+                    }`}>
                       <SpeakerWaveIcon className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold text-red-600 mb-2">AI Says:</p>
+                      <p className={`font-bold mb-2 ${
+                        gameMode === 'dad-jokes' ? 'text-blue-600' : 'text-red-600'
+                      }`}>AI Says:</p>
                       <p className="text-gray-900 text-lg">{aiResponse}</p>
                     </div>
                   </div>
                   {burnScore !== null && (
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-gray-700">BURN METER:</span>
+                      <span className="text-sm font-semibold text-gray-700">
+                        {gameMode === 'dad-jokes' ? 'GROAN METER:' : 'BURN METER:'}
+                      </span>
                       <div className="flex-1 bg-gray-200 rounded-full h-3">
                         <div
-                          className="bg-gradient-to-r from-orange-400 to-red-500 h-3 rounded-full transition-all"
+                          className={`h-3 rounded-full transition-all ${
+                            gameMode === 'dad-jokes'
+                              ? 'bg-gradient-to-r from-blue-400 to-cyan-500'
+                              : 'bg-gradient-to-r from-orange-400 to-red-500'
+                          }`}
                           style={{ width: `${burnScore * 10}%` }}
                         />
                       </div>
-                      <span className="text-lg font-bold text-red-600">{burnScore}/10</span>
+                      <span className={`text-lg font-bold ${
+                        gameMode === 'dad-jokes' ? 'text-blue-600' : 'text-red-600'
+                      }`}>{burnScore}/10</span>
                     </div>
                   )}
                 </div>
@@ -635,9 +928,16 @@ export default function AIRoastBattle() {
                       <h3 className="text-2xl font-bold text-gray-900 mb-2">
                         🎤 Listening...
                       </h3>
-                      <p className="text-gray-600">
-                        Say your roast now!
+                      <p className="text-gray-600 mb-3">
+                        Take your time! I'll wait 2 seconds after you stop talking.
                       </p>
+                      {playerInput && (
+                        <div className="mt-4 p-4 bg-white rounded-xl border-2 border-blue-300 shadow-sm">
+                          <p className="text-sm font-semibold text-blue-600 mb-1">You're saying:</p>
+                          <p className="text-gray-900 text-lg">{playerInput}</p>
+                          <p className="text-xs text-gray-500 mt-2">Keep talking or wait 2 seconds to finish...</p>
+                        </div>
+                      )}
                     </>
                   ) : isAIThinking ? (
                     <>

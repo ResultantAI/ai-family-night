@@ -303,6 +303,38 @@ function ProfileTab({ user }) {
 // Billing Tab
 function BillingTab({ user }) {
   const [loading, setLoading] = useState(false)
+  const [invoices, setInvoices] = useState([])
+  const [loadingInvoices, setLoadingInvoices] = useState(true)
+
+  // Fetch invoices when component mounts
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      if (!user.customerId) {
+        setLoadingInvoices(false)
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/get-invoices?customerId=${user.customerId}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success) {
+            setInvoices(data.invoices)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching invoices:', error)
+      } finally {
+        setLoadingInvoices(false)
+      }
+    }
+
+    if (user.isPremium) {
+      fetchInvoices()
+    } else {
+      setLoadingInvoices(false)
+    }
+  }, [user])
 
   const handleManageBilling = async () => {
     if (!user.customerId) {
@@ -451,9 +483,60 @@ function BillingTab({ user }) {
           <div className="bg-white rounded-2xl border border-gray-200 p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Billing History</h2>
 
-            <div className="text-center py-8 text-gray-500">
-              <p>No billing history yet</p>
-            </div>
+            {loadingInvoices ? (
+              <div className="text-center py-8 text-gray-500">
+                <div className="animate-spin w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full mx-auto mb-3"></div>
+                <p>Loading invoices...</p>
+              </div>
+            ) : invoices.length > 0 ? (
+              <div className="space-y-3">
+                {invoices.map((invoice) => (
+                  <div
+                    key={invoice.id}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <p className="font-semibold text-gray-900">{invoice.description}</p>
+                        {invoice.discount && (
+                          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold">
+                            {invoice.discount.percent ? `${invoice.discount.percent}% OFF` : `$${invoice.discount.amount / 100} OFF`}
+                          </span>
+                        )}
+                        <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                          invoice.paid
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {invoice.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500">{invoice.date}</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <p className="font-bold text-gray-900 text-lg">
+                        ${invoice.amount} {invoice.currency}
+                      </p>
+                      {invoice.pdfUrl && (
+                        <a
+                          href={invoice.pdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-purple-600 hover:text-purple-700 font-medium text-sm"
+                        >
+                          Download PDF
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No billing history yet</p>
+                <p className="text-sm mt-2">Your invoices will appear here after your first payment</p>
+              </div>
+            )}
           </div>
         </>
       )}

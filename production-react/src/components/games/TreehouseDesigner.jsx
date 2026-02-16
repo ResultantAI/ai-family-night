@@ -178,7 +178,10 @@ export default function TreehouseDesigner() {
               </label>
               <VoiceInput
                 value={treehouseName}
-                onChange={setTreehouseName}
+                onChange={(newValue) => {
+                  const value = typeof newValue === 'string' ? newValue : newValue?.target?.value || ''
+                  setTreehouseName(value)
+                }}
                 placeholder="The Eagle's Nest"
                 className="w-full px-4 py-3 pr-12 border-2 border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />

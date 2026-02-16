@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [upcomingGames, setUpcomingGames] = useState([])
   const [children, setChildren] = useState([])
   const [recentCreations, setRecentCreations] = useState([])
 
@@ -103,7 +104,24 @@ export default function Dashboard() {
         setRecentCreations(creations)
       }
 
+      // Fetch coming soon games
+      await fetchComingSoonGames()
+
       setLoading(false)
+    }
+
+    const fetchComingSoonGames = async () => {
+      try {
+        const response = await fetch('/api/get-coming-soon')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.games) {
+            setUpcomingGames(data.games)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching coming soon games:', error)
+      }
     }
 
     fetchUser()
@@ -123,11 +141,7 @@ export default function Dashboard() {
     releaseDate: '2026-02-13'
   }
 
-  const upcomingGames = [
-    { title: 'Superhero Origin Story', releaseDate: '2026-02-20', isPremium: true },
-    { title: 'Dream Treehouse Designer', releaseDate: '2026-02-27', isPremium: true },
-    { title: 'Restaurant Menu Maker', releaseDate: '2026-03-06', isPremium: true }
-  ]
+  // upcomingGames is now fetched dynamically via state
 
   if (loading) {
     return (
@@ -239,6 +253,17 @@ export default function Dashboard() {
                       >
                         <StarIcon className="w-5 h-5 text-gray-400" />
                         {user.isPremium ? 'Manage Subscription' : 'Upgrade to Premium'}
+                      </Link>
+
+                      <Link
+                        to="/referrals"
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-purple-700 hover:bg-purple-50 font-semibold"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                        </svg>
+                        Refer Friends 🎁
                       </Link>
 
                       <div className="border-t border-gray-200 mt-2 pt-2">
@@ -362,6 +387,34 @@ export default function Dashboard() {
             />
           </div>
         </div>
+
+        {/* Referral Program CTA */}
+        {user.isPremium && (
+          <Link
+            to="/referrals"
+            className="block mb-8 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all transform hover:scale-[1.02]"
+          >
+            <div className="flex items-center justify-between text-white">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                  </svg>
+                  <h3 className="text-2xl font-bold">Refer Friends, Get Free Months! 🎁</h3>
+                </div>
+                <p className="text-purple-100 text-lg">
+                  Share AI Family Night with 3 friends who subscribe and get 3 FREE months
+                </p>
+              </div>
+              <div className="hidden md:flex items-center gap-2 bg-white/20 backdrop-blur-sm px-6 py-3 rounded-xl font-bold text-lg">
+                Start Referring
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </Link>
+        )}
 
         {/* This Week's Game */}
         <div className="mb-8">
@@ -575,31 +628,77 @@ function CreationCard({ creation }) {
 }
 
 function UpcomingGameCard({ game, isPremium }) {
+  // Calculate days until release
+  const releaseDate = new Date(game.release_date)
+  const now = new Date()
+  const daysUntil = Math.ceil((releaseDate - now) / (1000 * 60 * 60 * 24))
+
   return (
-    <div className={`border-2 rounded-xl p-6 relative ${
+    <div className={`border-2 rounded-xl p-6 relative overflow-hidden ${
       isPremium
-        ? 'border-purple-200 bg-purple-50'
-        : 'border-gray-200 bg-white opacity-60'
+        ? 'border-purple-300 bg-gradient-to-br from-purple-50 to-pink-50'
+        : 'border-gray-200 bg-white opacity-70'
     }`}>
+      {/* Animated background gradient */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${game.gradient} opacity-10`} />
+
+      {/* Lock badge for free users */}
       {!isPremium && (
-        <div className="absolute top-4 right-4">
-          <LockClosedIcon className="w-5 h-5 text-gray-400" />
+        <div className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm rounded-full p-2">
+          <LockClosedIcon className="w-4 h-4 text-gray-600" />
         </div>
       )}
 
-      <div className="text-sm text-gray-600 mb-2">{game.releaseDate}</div>
-      <div className="font-bold text-gray-900">{game.title}</div>
+      {/* Game icon */}
+      <div className="relative mb-4">
+        <div className="text-5xl">{game.icon}</div>
+      </div>
 
-      {!isPremium && (
-        <div className="mt-4">
-          <Link
-            to="/upgrade"
-            className="text-purple-600 hover:text-purple-700 text-sm font-medium"
-          >
-            Unlock with Premium →
-          </Link>
+      {/* Countdown badge */}
+      <div className="relative mb-3">
+        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
+          isPremium
+            ? 'bg-purple-600 text-white'
+            : 'bg-gray-200 text-gray-600'
+        }`}>
+          <ClockIcon className="w-3 h-3" />
+          {daysUntil === 0 ? 'Today!' : daysUntil === 1 ? 'Tomorrow!' : `${daysUntil} days`}
+        </span>
+      </div>
+
+      {/* Title and description */}
+      <div className="relative">
+        <div className="font-bold text-gray-900 mb-2">{game.title}</div>
+        <p className="text-sm text-gray-600 line-clamp-2 mb-4">
+          {game.description}
+        </p>
+
+        {/* Category badge */}
+        <div className="flex items-center gap-2">
+          <span className={`text-xs px-2 py-1 rounded-full ${
+            isPremium
+              ? 'bg-purple-100 text-purple-700'
+              : 'bg-gray-100 text-gray-600'
+          }`}>
+            {game.category}
+          </span>
         </div>
-      )}
+
+        {/* CTA for free users */}
+        {!isPremium && (
+          <div className="mt-4">
+            <Link
+              to="/upgrade"
+              className="text-purple-600 hover:text-purple-700 text-sm font-semibold inline-flex items-center gap-1"
+            >
+              Unlock with Premium
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

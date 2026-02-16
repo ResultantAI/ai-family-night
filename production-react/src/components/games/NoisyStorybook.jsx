@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   SpeakerWaveIcon,
@@ -52,6 +52,23 @@ export default function NoisyStorybook() {
   // Auto-save game state
   const gameState = { theme }
   useAutoSave('noisy-storybook-game', gameState, 1000)
+
+  // Request microphone permission on mount
+  useEffect(() => {
+    const requestMicPermission = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        // Permission granted, stop the stream
+        stream.getTracks().forEach(track => track.stop())
+        console.log('✅ Microphone permission granted for Noisy Storybook')
+      } catch (err) {
+        console.error('❌ Microphone permission denied:', err)
+        setError('Microphone permission is required for this game. Please allow access in your browser settings.')
+      }
+    }
+
+    requestMicPermission()
+  }, [])
 
   const themeOptions = [
     {
@@ -297,20 +314,24 @@ export default function NoisyStorybook() {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
         const audioUrl = URL.createObjectURL(audioBlob)
 
-        setRecordings(prev => ({
-          ...prev,
-          [cueIndex]: { blob: audioBlob, url: audioUrl }
-        }))
+        setRecordings(prev => {
+          const newRecordings = {
+            ...prev,
+            [cueIndex]: { blob: audioBlob, url: audioUrl }
+          }
+
+          // Check if all recordings are complete
+          const totalCues = generatedStory.soundCues.length
+          const currentCount = Object.keys(newRecordings).length
+          if (currentCount >= totalCues) {
+            setRecordingComplete(true)
+          }
+
+          return newRecordings
+        })
 
         // Stop all tracks
         stream.getTracks().forEach(track => track.stop())
-
-        // Check if all recordings are complete
-        const totalCues = generatedStory.soundCues.length
-        const currentCount = Object.keys(recordings).length + 1
-        if (currentCount >= totalCues) {
-          setRecordingComplete(true)
-        }
       }
 
       mediaRecorderRef.current.start()
