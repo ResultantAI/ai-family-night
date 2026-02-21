@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, getUserSubscription, updateSubscription } from '../lib/supabase'
 import { SparklesIcon } from '@heroicons/react/24/outline'
 
 export default function AuthCallback() {
@@ -28,9 +28,25 @@ export default function AuthCallback() {
           // Successfully authenticated
           console.log('User authenticated:', session.user.email)
 
-          // TODO: Create or update user subscription in database
-          // For now, set premium tier in localStorage (temporary)
-          localStorage.setItem('subscription_tier', 'free')
+          // Ensure a subscription record exists for this user.
+          // On first OAuth login no record exists — create a free tier entry.
+          // On subsequent logins just sync localStorage from the real DB value.
+          try {
+            let subscription = await getUserSubscription(session.user.id)
+            if (!subscription) {
+              const result = await updateSubscription(session.user.id, {
+                tier: 'free',
+                status: 'active',
+              })
+              subscription = result.data
+            }
+            const tier = subscription?.tier || 'free'
+            localStorage.setItem('subscription_tier', tier)
+          } catch (subErr) {
+            // Non-fatal — don't block the user from logging in
+            console.warn('Subscription sync failed:', subErr.message)
+            localStorage.setItem('subscription_tier', 'free')
+          }
 
           // Check if user has completed onboarding
           const hasCompletedOnboarding = session.user.user_metadata?.onboarding_completed
